@@ -41,8 +41,16 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState<CouponResult | null>(null)
   const [method, setMethod] = useState('')
   const [progress, setProgress] = useState('')
+  // A booking can be made for today and up to 60 days ahead; worked out once, not on every render.
+  const [window_] = useState(() => ({
+    today: toIsoDay(new Date()),
+    last: toIsoDay(new Date(Date.now() + 60 * 86_400_000)),
+  }))
 
-  const checkCoupon = useApiMutation((code: string) => api.customer.checkCoupon(code), { meta: { inline: true }, onSuccess: setCoupon })
+  const checkCoupon = useApiMutation((code: string) => api.customer.checkCoupon(code), {
+    meta: { inline: true },
+    onSuccess: setCoupon,
+  })
 
   const selected = addresses.data?.find((a) => String(a.id) === addressId)
   const usingNew = addressId === NEW_ADDRESS || (addresses.data?.length === 0 && !selected)
@@ -52,11 +60,14 @@ export default function CheckoutPage() {
     async () => {
       if (!settings.data) throw new ApiError('Settings are still loading.')
       const online = settings.data.onlinePayments && method !== 'Wallet'
-      if (usingNew && saveNew) await api.customer.addAddress({ label: newLabel.trim() || 'Home', text: addressText })
+      if (usingNew && saveNew)
+        await api.customer.addAddress({ label: newLabel.trim() || 'Home', text: addressText })
 
       const placed: string[] = []
       for (const [index, item] of items.entries()) {
-        setProgress(items.length > 1 ? `Booking ${index + 1} of ${items.length}…` : 'Placing your booking…')
+        setProgress(
+          items.length > 1 ? `Booking ${index + 1} of ${items.length}…` : 'Placing your booking…',
+        )
         const request: PlaceBookingRequest = {
           vendorServiceId: item.vendorServiceId,
           serviceItemId: item.serviceItemId,
@@ -70,11 +81,17 @@ export default function CheckoutPage() {
           payMethod: method,
         }
         if (online) {
-          setProgress(`Waiting for your payment${items.length > 1 ? ` (${index + 1} of ${items.length})` : ''}…`)
+          setProgress(
+            `Waiting for your payment${items.length > 1 ? ` (${index + 1} of ${items.length})` : ''}…`,
+          )
           const order = await api.payments.forBooking(request)
           const outcome = await pay(order)
-          if (outcome === 'failed') throw new ApiError('The payment did not go through. You have not been charged; please try again.')
-          if (outcome === 'cancelled') throw new ApiError('Payment cancelled. Nothing was booked for this service.')
+          if (outcome === 'failed')
+            throw new ApiError(
+              'The payment did not go through. You have not been charged; please try again.',
+            )
+          if (outcome === 'cancelled')
+            throw new ApiError('Payment cancelled. Nothing was booked for this service.')
           request.paymentId = order.id
         }
         const result = await api.bookings.place(request)
@@ -86,37 +103,59 @@ export default function CheckoutPage() {
     {
       meta: { inline: true },
       onSuccess: (codes) => {
-        toast.success(codes.length === 1 ? `Booking ${codes[0]} confirmed.` : `${codes.length} bookings confirmed.`)
+        toast.success(
+          codes.length === 1
+            ? `Booking ${codes[0]} confirmed.`
+            : `${codes.length} bookings confirmed.`,
+        )
         navigate(codes.length === 1 ? bookingPath(codes[0]!) : ROUTES.bookings, { replace: true })
       },
       onSettled: () => setProgress(''),
     },
   )
 
-  if (items.length === 0 && !place.isPending && !place.isSuccess) return <Navigate to={ROUTES.cart} replace />
+  if (items.length === 0 && !place.isPending && !place.isSuccess)
+    return <Navigate to={ROUTES.cart} replace />
 
-  const today = toIsoDay(new Date())
-  const lastDay = toIsoDay(new Date(Date.now() + 60 * 86_400_000))
   const fee = settings.data?.platformFee ?? 0
   const subtotal = cartSubtotal(items)
   const discount = coupon?.valid ? coupon.discount : 0
   const total = Math.max(0, subtotal + fee * items.length - discount)
 
-  const methods = Object.entries(settings.data?.paymentMethods ?? {}).filter(([, on]) => on).map(([name]) => name)
+  const methods = Object.entries(settings.data?.paymentMethods ?? {})
+    .filter(([, on]) => on)
+    .map(([name]) => name)
   const wallet = profile.data?.wallet ?? 0
-  const couponAvailable = settings.data?.features.coupon && settings.data.couponCode !== '' && !profile.data?.couponUsed
+  const couponAvailable =
+    settings.data?.features.coupon && settings.data.couponCode !== '' && !profile.data?.couponUsed
 
-  const slotOptions = content.slots.flatMap((group) => group.times.map((t) => ({ value: t, label: `${group.part} · ${t}` })))
-  const missing =
-    items.some((i) => !i.date || !i.time) ? 'Choose a day and time for every service.' : addressText.length < 8 ? 'Choose or enter an address.' : !method ? 'Choose how you want to pay.' : ''
+  const slotOptions = content.slots.flatMap((group) =>
+    group.times.map((t) => ({ value: t, label: `${group.part} · ${t}` })),
+  )
+  const missing = items.some((i) => !i.date || !i.time)
+    ? 'Choose a day and time for every service.'
+    : addressText.length < 8
+      ? 'Choose or enter an address.'
+      : !method
+        ? 'Choose how you want to pay.'
+        : ''
 
   return (
     <div className={shared.stack}>
-      <PageHeader title="Date, address & payment" description="Almost done: tell us when and where, then pay." />
-      <QueryState isLoading={settings.isLoading || profile.isLoading || addresses.isLoading} error={settings.error ?? profile.error ?? addresses.error}>
+      <PageHeader
+        title="Date, address & payment"
+        description="Almost done: tell us when and where, then pay."
+      />
+      <QueryState
+        isLoading={settings.isLoading || profile.isLoading || addresses.isLoading}
+        error={settings.error ?? profile.error ?? addresses.error}
+      >
         <div className={styles.layout}>
           <div className={shared.stack}>
-            <Panel title="1. When should the technician come?" subtitle={content.text('app', 'slot-note')}>
+            <Panel
+              title="1. When should the technician come?"
+              subtitle={content.text('app', 'slot-note')}
+            >
               <div className={shared.stack}>
                 {items.map((item) => (
                   <div key={item.id} className={styles.slotRow}>
@@ -124,8 +163,21 @@ export default function CheckoutPage() {
                       <span aria-hidden="true">{item.emoji}</span> {item.serviceName}
                       <span className={shared.muted}> × {item.qty}</span>
                     </strong>
-                    <Input label="Day" type="date" min={today} max={lastDay} value={item.date} onChange={(e) => update(item.id, { date: e.target.value })} />
-                    <Select label="Time" placeholder="Choose a time" value={item.time} onChange={(e) => update(item.id, { time: e.target.value })} options={slotOptions} />
+                    <Input
+                      label="Day"
+                      type="date"
+                      min={window_.today}
+                      max={window_.last}
+                      value={item.date}
+                      onChange={(e) => update(item.id, { date: e.target.value })}
+                    />
+                    <Select
+                      label="Time"
+                      placeholder="Choose a time"
+                      value={item.time}
+                      onChange={(e) => update(item.id, { time: e.target.value })}
+                      options={slotOptions}
+                    />
                     <Input
                       label="Notes for the technician"
                       placeholder="Optional"
@@ -146,17 +198,42 @@ export default function CheckoutPage() {
                     placeholder="Choose a saved address"
                     value={addressId}
                     onChange={(e) => setAddressId(e.target.value)}
-                    options={[...(addresses.data ?? []).map((a) => ({ value: String(a.id), label: `${a.label}: ${a.text}` })), { value: NEW_ADDRESS, label: 'Use a different address…' }]}
+                    options={[
+                      ...(addresses.data ?? []).map((a) => ({
+                        value: String(a.id),
+                        label: `${a.label}: ${a.text}`,
+                      })),
+                      { value: NEW_ADDRESS, label: 'Use a different address…' },
+                    ]}
                   />
                 )}
                 {selected && <p className={shared.muted}>{selected.text}</p>}
                 {usingNew && (
                   <>
                     <PlaceSearch onPick={setNewText} />
-                    <Textarea label="Full address" required rows={3} hint="House number, building, area and city." value={newText} onChange={(e) => setNewText(e.target.value)} maxLength={300} />
+                    <Textarea
+                      label="Full address"
+                      required
+                      rows={3}
+                      hint="House number, building, area and city."
+                      value={newText}
+                      onChange={(e) => setNewText(e.target.value)}
+                      maxLength={300}
+                    />
                     <div className={shared.row}>
-                      <Checkbox label="Save this address" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} />
-                      {saveNew && <Input label="Label" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} maxLength={40} />}
+                      <Checkbox
+                        label="Save this address"
+                        checked={saveNew}
+                        onChange={(e) => setSaveNew(e.target.checked)}
+                      />
+                      {saveNew && (
+                        <Input
+                          label="Label"
+                          value={newLabel}
+                          onChange={(e) => setNewLabel(e.target.value)}
+                          maxLength={40}
+                        />
+                      )}
                     </div>
                   </>
                 )}
@@ -166,23 +243,36 @@ export default function CheckoutPage() {
             <Panel title="3. Payment">
               <div className={shared.stackTight}>
                 {couponAvailable && (
-                  <div className={shared.row} style={{ alignItems: 'flex-end' }}>
+                  <div className={shared.row} style={{ alignItems: 'flex-start' }}>
                     <Input
                       label="Coupon code"
-                      hint={fill(content.text('offer', 'first', 'Flat {amount} OFF'), { amount: formatCurrency(settings.data?.couponAmount ?? 0) })}
+                      hint={fill(content.text('offer', 'first', 'Flat {amount} OFF'), {
+                        amount: formatCurrency(settings.data?.couponAmount ?? 0),
+                      })}
                       value={couponCode}
                       onChange={(e) => {
                         setCouponCode(e.target.value)
                         setCoupon(null)
                       }}
                     />
-                    <Button variant="secondary" loading={checkCoupon.isPending} disabled={!couponCode.trim()} onClick={() => checkCoupon.mutate(couponCode.trim())}>
+                    <Button
+                      variant="secondary"
+                      style={{ marginTop: 22 }}
+                      loading={checkCoupon.isPending}
+                      disabled={!couponCode.trim()}
+                      onClick={() => checkCoupon.mutate(couponCode.trim())}
+                    >
                       Apply
                     </Button>
                   </div>
                 )}
                 {coupon && (
-                  <Alert tone={coupon.valid ? 'success' : 'danger'}>{coupon.message || (coupon.valid ? `${formatCurrency(coupon.discount)} off your first booking.` : 'That code cannot be used.')}</Alert>
+                  <Alert tone={coupon.valid ? 'success' : 'danger'}>
+                    {coupon.message ||
+                      (coupon.valid
+                        ? `${formatCurrency(coupon.discount)} off your first booking.`
+                        : 'That code cannot be used.')}
+                  </Alert>
                 )}
                 {checkCoupon.isError && <Alert tone="danger">{checkCoupon.error.message}</Alert>}
 
@@ -191,8 +281,22 @@ export default function CheckoutPage() {
                     const row = content.row('payment', name)
                     const insufficient = name === 'Wallet' && wallet < total
                     return (
-                      <label key={name} className={clsx(styles.method, method === name && styles.methodOn, insufficient && styles.methodOff)}>
-                        <input type="radio" name="method" value={name} checked={method === name} disabled={insufficient} onChange={() => setMethod(name)} />
+                      <label
+                        key={name}
+                        className={clsx(
+                          styles.method,
+                          method === name && styles.methodOn,
+                          insufficient && styles.methodOff,
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="method"
+                          value={name}
+                          checked={method === name}
+                          disabled={insufficient}
+                          onChange={() => setMethod(name)}
+                        />
                         <span>
                           <strong>{row?.title || name}</strong>
                           <span className={shared.muted}>
@@ -206,7 +310,9 @@ export default function CheckoutPage() {
                   })}
                 </div>
                 {settings.data?.onlinePayments && settings.data.paymentProvider === 'Test' && (
-                  <p className={`${shared.muted} ${shared.small}`}>{content.text('app', 'test-payment')}</p>
+                  <p className={`${shared.muted} ${shared.small}`}>
+                    {content.text('app', 'test-payment')}
+                  </p>
                 )}
               </div>
             </Panel>
@@ -245,16 +351,28 @@ export default function CheckoutPage() {
                   <Alert tone="danger">{place.error.message}</Alert>
                 </div>
               )}
-              {missing && !place.isPending && <p className={`${shared.muted} ${shared.small}`} style={{ marginTop: 12 }}>{missing}</p>}
+              {missing && !place.isPending && (
+                <p className={`${shared.muted} ${shared.small}`} style={{ marginTop: 12 }}>
+                  {missing}
+                </p>
+              )}
               <div className={shared.formActions}>
                 <Link to={ROUTES.cart}>
                   <Button variant="secondary">Back to cart</Button>
                 </Link>
-                <Button loading={place.isPending} disabled={missing !== ''} onClick={() => place.mutate(undefined)}>
+                <Button
+                  loading={place.isPending}
+                  disabled={missing !== ''}
+                  onClick={() => place.mutate(undefined)}
+                >
                   {method === 'Wallet' ? 'Confirm booking' : 'Pay & confirm'}
                 </Button>
               </div>
-              {progress && <p className={shared.muted} role="status">{progress}</p>}
+              {progress && (
+                <p className={shared.muted} role="status">
+                  {progress}
+                </p>
+              )}
             </Panel>
           </div>
         </div>

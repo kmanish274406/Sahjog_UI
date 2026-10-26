@@ -27,13 +27,17 @@ function plain(status: number): string {
 function buildUrl(path: string, query?: RequestOptions['query']): string {
   const url = new URL(env.apiUrl + path)
   for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
+    if (value !== undefined && value !== null && value !== '')
+      url.searchParams.set(key, String(value))
   }
   return url.toString()
 }
 
 /** One call, no renewal. Returns the unwrapped data. */
-async function send<T>(path: string, options: RequestOptions): Promise<{ data: T; message: string | null }> {
+async function send<T>(
+  path: string,
+  options: RequestOptions,
+): Promise<{ data: T; message: string | null }> {
   const { token, tenant } = useAuthStore.getState()
   const headers: Record<string, string> = { 'X-Tenant-Id': tenant }
   if (options.auth !== false && token) headers.Authorization = `Bearer ${token}`
@@ -56,9 +60,13 @@ async function send<T>(path: string, options: RequestOptions): Promise<{ data: T
     })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError('The server is taking too long to answer. Check your connection and try again.')
+      throw new ApiError(
+        'The server is taking too long to answer. Check your connection and try again.',
+      )
     }
-    throw new ApiError('Cannot reach Sahjog right now. Check your internet connection and try again.')
+    throw new ApiError(
+      'Cannot reach Sahjog right now. Check your internet connection and try again.',
+    )
   } finally {
     window.clearTimeout(timer)
   }
@@ -115,7 +123,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   try {
     return (await send<T>(path, options)).data
   } catch (error) {
-    const expired = error instanceof ApiError && error.status === 401 && options.auth !== false && usedToken !== null
+    const expired =
+      error instanceof ApiError &&
+      error.status === 401 &&
+      options.auth !== false &&
+      usedToken !== null
     if (!expired) throw error
     // Another call may already have renewed the token while this one was in flight.
     const renewed = useAuthStore.getState().token !== usedToken || (await renewSession())

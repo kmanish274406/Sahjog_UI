@@ -30,7 +30,9 @@ const guarded: { roles: Role[]; routes: RouteObject[] }[] = [
       {
         index: true,
         lazy: () =>
-          import('@/features/dashboard/pages/DashboardPage').then((m) => ({ Component: m.default })),
+          import('@/features/dashboard/pages/DashboardPage').then((m) => ({
+            Component: m.default,
+          })),
       },
     ],
   },
@@ -39,7 +41,10 @@ const guarded: { roles: Role[]; routes: RouteObject[] }[] = [
     routes: [
       page(rel(ROUTES.bookings), () => import('@/features/bookings/pages/BookingsPage')),
       page(rel(ROUTES.bookingDetail), () => import('@/features/bookings/pages/BookingDetailPage')),
-      page(rel(ROUTES.notifications), () => import('@/features/notifications/pages/NotificationsPage')),
+      page(
+        rel(ROUTES.notifications),
+        () => import('@/features/notifications/pages/NotificationsPage'),
+      ),
     ],
   },
   {

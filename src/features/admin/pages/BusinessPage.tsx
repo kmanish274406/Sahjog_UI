@@ -17,7 +17,14 @@ export default function BusinessPage() {
       <QueryState isLoading={tenant.isLoading} error={tenant.error}>
         {t && (
           <>
-            <Panel title={t.name} actions={<Badge tone={t.isActive ? 'success' : 'danger'}>{t.isActive ? 'Active' : 'Switched off'}</Badge>}>
+            <Panel
+              title={t.name}
+              actions={
+                <Badge tone={t.isActive ? 'success' : 'danger'}>
+                  {t.isActive ? 'Active' : 'Switched off'}
+                </Badge>
+              }
+            >
               <DescriptionList
                 columns={3}
                 items={[
@@ -31,7 +38,10 @@ export default function BusinessPage() {
                 ]}
               />
             </Panel>
-            <Panel title="Features" subtitle="Set by the platform owner. A switched-off feature is hidden in the apps and refused by the server.">
+            <Panel
+              title="Features"
+              subtitle="Set by the platform owner. A switched-off feature is hidden in the apps and refused by the server."
+            >
               <ul className={shared.list}>
                 {[
                   { label: 'Sahjog wallet', on: t.features.wallet },

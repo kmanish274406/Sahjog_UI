@@ -124,7 +124,10 @@ export function Topbar() {
                 ) : (
                   <ul className={styles.notifications}>
                     {items.slice(0, 8).map((n) => (
-                      <li key={n.id} className={clsx(styles.notification, n.unread && styles.unread)}>
+                      <li
+                        key={n.id}
+                        className={clsx(styles.notification, n.unread && styles.unread)}
+                      >
                         <p className={styles.notificationTitle}>{n.text}</p>
                         <p className={styles.time}>{formatRelativeTime(n.when)}</p>
                       </li>
@@ -166,13 +169,20 @@ export function Topbar() {
                 <div className={styles.panelHeader}>
                   <div>
                     <p className={styles.notificationTitle}>{user.name}</p>
-                    <p className={styles.muted}>{user.email ?? user.phone ?? ROLE_LABELS[user.role]}</p>
+                    <p className={styles.muted}>
+                      {user.email ?? user.phone ?? ROLE_LABELS[user.role]}
+                    </p>
                   </div>
                 </div>
                 <ul className={styles.menu} role="menu">
                   {user.role !== 'super_admin' && (
                     <li role="none">
-                      <Link to={ROUTES.profile} className={styles.menuItem} role="menuitem" onClick={close}>
+                      <Link
+                        to={ROUTES.profile}
+                        className={styles.menuItem}
+                        role="menuitem"
+                        onClick={close}
+                      >
                         <User size={16} /> My profile
                       </Link>
                     </li>

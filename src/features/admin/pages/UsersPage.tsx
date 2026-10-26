@@ -4,7 +4,17 @@ import type { StaffDto } from '@/api/types'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Toolbar } from '@/components/layout/Toolbar'
-import { Alert, Badge, Button, DataTable, Modal, Panel, SearchInput, Select, Tabs } from '@/components/ui'
+import {
+  Alert,
+  Badge,
+  Button,
+  DataTable,
+  Modal,
+  Panel,
+  SearchInput,
+  Select,
+  Tabs,
+} from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
@@ -17,11 +27,16 @@ export default function UsersPage() {
   const [term, setTerm] = useState('')
   const [extending, setExtending] = useState<StaffDto | null>(null)
   const users = useApiQuery(['admin', 'users', kind], () => api.admin.users(kind))
-  const setActive = useApiMutation((v: { id: number; active: boolean }) => api.admin.setUserActive(v.id, v.active), {
-    meta: { success: 'Account updated.' },
-  })
+  const setActive = useApiMutation(
+    (v: { id: number; active: boolean }) => api.admin.setUserActive(v.id, v.active),
+    {
+      meta: { success: 'Account updated.' },
+    },
+  )
 
-  const rows = (users.data ?? []).filter((u) => `${u.name} ${u.skill} ${u.phone}`.toLowerCase().includes(term.trim().toLowerCase()))
+  const rows = (users.data ?? []).filter((u) =>
+    `${u.name} ${u.skill} ${u.phone}`.toLowerCase().includes(term.trim().toLowerCase()),
+  )
 
   const columns: Column<StaffDto>[] = [
     {
@@ -35,7 +50,11 @@ export default function UsersPage() {
       ),
     },
     { key: 'skill', header: kind === 'Vendor' ? 'Offers' : 'Skill', render: (u) => u.skill || '-' },
-    { key: 'phone', header: 'Phone', render: (u) => <span className={shared.mono}>{u.phone || '-'}</span> },
+    {
+      key: 'phone',
+      header: 'Phone',
+      render: (u) => <span className={shared.mono}>{u.phone || '-'}</span>,
+    },
     { key: 'plan', header: 'Plan', render: (u) => u.plan },
     {
       key: 'expiry',
@@ -46,7 +65,13 @@ export default function UsersPage() {
         </span>
       ),
     },
-    { key: 'status', header: 'Account', render: (u) => <Badge tone={u.active ? 'success' : 'danger'}>{u.active ? 'Enabled' : 'Disabled'}</Badge> },
+    {
+      key: 'status',
+      header: 'Account',
+      render: (u) => (
+        <Badge tone={u.active ? 'success' : 'danger'}>{u.active ? 'Enabled' : 'Disabled'}</Badge>
+      ),
+    },
     {
       key: 'actions',
       header: '',
@@ -61,7 +86,12 @@ export default function UsersPage() {
             variant={u.active ? 'danger' : 'primary'}
             disabled={setActive.isPending}
             onClick={() => {
-              if (!u.active || window.confirm(`Disable ${u.name}? They are signed out and cannot take work until you enable them again.`)) {
+              if (
+                !u.active ||
+                window.confirm(
+                  `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
+                )
+              ) {
                 setActive.mutate({ id: u.id, active: !u.active })
               }
             }}
@@ -75,7 +105,10 @@ export default function UsersPage() {
 
   return (
     <div className={shared.stack}>
-      <PageHeader title="Vendors & technicians" description="Switch accounts on or off and extend their subscriptions." />
+      <PageHeader
+        title="Vendors & technicians"
+        description="Switch accounts on or off and extend their subscriptions."
+      />
       <Toolbar>
         <Tabs
           items={[
@@ -86,14 +119,28 @@ export default function UsersPage() {
           onChange={setKind}
           label="Account type"
         />
-        <SearchInput label="Search accounts" placeholder="Search by name, skill or phone" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <SearchInput
+          label="Search accounts"
+          placeholder="Search by name, skill or phone"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+        />
       </Toolbar>
       <QueryState isLoading={users.isLoading} error={users.error}>
         <Panel flush>
-          <DataTable columns={columns} rows={rows} getRowId={(u) => String(u.id)} emptyMessage="No accounts found." />
+          <DataTable
+            columns={columns}
+            rows={rows}
+            getRowId={(u) => String(u.id)}
+            emptyMessage="No accounts found."
+          />
         </Panel>
       </QueryState>
-      <Modal open={extending !== null} title="Extend subscription" onClose={() => setExtending(null)}>
+      <Modal
+        open={extending !== null}
+        title="Extend subscription"
+        onClose={() => setExtending(null)}
+      >
         {extending && <ExtendForm user={extending} onDone={() => setExtending(null)} />}
       </Modal>
     </div>
@@ -109,13 +156,17 @@ function ExtendForm({ user, onDone }: { user: StaffDto; onDone: () => void }) {
   return (
     <div className={shared.stackTight}>
       <p>
-        Give <strong>{user.name}</strong> more time on their plan, for example after a payment made outside the app.
+        Give <strong>{user.name}</strong> more time on their plan, for example after a payment made
+        outside the app.
       </p>
       <Select
         label="Extend by"
         value={months}
         onChange={(e) => setMonths(e.target.value)}
-        options={[1, 2, 3, 6, 12].map((m) => ({ value: String(m), label: `${m} ${m === 1 ? 'month' : 'months'}` }))}
+        options={[1, 2, 3, 6, 12].map((m) => ({
+          value: String(m),
+          label: `${m} ${m === 1 ? 'month' : 'months'}`,
+        }))}
       />
       {extend.isError && <Alert tone="danger">{extend.error.message}</Alert>}
       <div className={shared.formActions}>

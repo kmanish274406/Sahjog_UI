@@ -17,7 +17,12 @@ export function Toaster() {
           role={item.tone === 'danger' ? 'alert' : 'status'}
         >
           <span className={styles.message}>{item.message}</span>
-          <button type="button" className={styles.close} onClick={() => dismiss(item.id)} aria-label="Dismiss">
+          <button
+            type="button"
+            className={styles.close}
+            onClick={() => dismiss(item.id)}
+            aria-label="Dismiss"
+          >
             <X size={14} />
           </button>
         </div>

@@ -13,7 +13,10 @@ export function sessionFromAuth(result: AuthResult): AuthSession {
     refreshToken: result.refreshToken,
     user: {
       id: profile.id,
-      name: profile.business && roleFromApi(profile.role) === 'vendor' ? profile.business : profile.name,
+      name:
+        profile.business && roleFromApi(profile.role) === 'vendor'
+          ? profile.business
+          : profile.name,
       role: roleFromApi(profile.role),
       phone: profile.phone || undefined,
       email: profile.email ?? undefined,

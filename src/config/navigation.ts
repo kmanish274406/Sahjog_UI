@@ -98,7 +98,10 @@ export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
     },
   ],
   admin: [
-    { title: 'Overview', items: [dashboard, { label: 'Reports', to: ROUTES.reports, icon: PieChart }] },
+    {
+      title: 'Overview',
+      items: [dashboard, { label: 'Reports', to: ROUTES.reports, icon: PieChart }],
+    },
     {
       title: 'Operations',
       items: [

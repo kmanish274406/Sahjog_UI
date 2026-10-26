@@ -32,7 +32,8 @@ export const useAuthStore = create<AuthState>()(
         set({ user, token, refreshToken })
       },
       setTokens: (token, refreshToken) => set({ token, refreshToken }),
-      updateUser: (user) => set((state) => ({ user: state.user ? { ...state.user, ...user } : null })),
+      updateUser: (user) =>
+        set((state) => ({ user: state.user ? { ...state.user, ...user } : null })),
       setTenant: (tenant) => set({ tenant: tenant.trim() || env.defaultTenant }),
       clearSession: () => {
         queryClient.clear()

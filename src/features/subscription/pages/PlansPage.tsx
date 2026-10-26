@@ -28,8 +28,10 @@ export default function PlansPage() {
       if (settings.data?.onlinePayments) {
         const order = await api.payments.forSubscription(plan.id)
         const outcome = await pay(order)
-        if (outcome === 'failed') throw new ApiError('The payment did not go through. You have not been charged.')
-        if (outcome === 'cancelled') throw new ApiError('Payment cancelled. Your plan was not changed.')
+        if (outcome === 'failed')
+          throw new ApiError('The payment did not go through. You have not been charged.')
+        if (outcome === 'cancelled')
+          throw new ApiError('Payment cancelled. Your plan was not changed.')
         paymentId = order.id
       }
       return api.subscription.subscribe(plan.id, paymentId)
@@ -42,19 +44,43 @@ export default function PlansPage() {
 
   return (
     <div className={shared.stack}>
-      <PageHeader title="Subscription" description={kind === 'Vendor' ? 'Customers can see and book you while a plan is active.' : 'You can take jobs while a plan is active.'} />
-      <QueryState isLoading={profile.isLoading || plans.isLoading} error={profile.error ?? plans.error}>
-        {me?.coveredByVendor && <Alert tone="success" title="Covered by your vendor">You work under a vendor whose plan covers you, so you do not need your own.</Alert>}
+      <PageHeader
+        title="Subscription"
+        description={
+          kind === 'Vendor'
+            ? 'Customers can see and book you while a plan is active.'
+            : 'You can take jobs while a plan is active.'
+        }
+      />
+      <QueryState
+        isLoading={profile.isLoading || plans.isLoading}
+        error={profile.error ?? plans.error}
+      >
+        {me?.coveredByVendor && (
+          <Alert tone="success" title="Covered by your vendor">
+            You work under a vendor whose plan covers you, so you do not need your own.
+          </Alert>
+        )}
         {me && !me.coveredByVendor && (
-          <Alert tone={me.subscriptionActive ? 'success' : 'warning'} title={me.subscriptionActive ? `${me.planName} plan is active` : 'No active plan'}>
-            {me.subscriptionActive && me.planExpiry ? `Valid until ${formatDate(me.planExpiry)}.` : 'Choose a plan below to get started.'}
+          <Alert
+            tone={me.subscriptionActive ? 'success' : 'warning'}
+            title={me.subscriptionActive ? `${me.planName} plan is active` : 'No active plan'}
+          >
+            {me.subscriptionActive && me.planExpiry
+              ? `Valid until ${formatDate(me.planExpiry)}.`
+              : 'Choose a plan below to get started.'}
           </Alert>
         )}
         <div className={shared.grid3}>
           {(plans.data ?? []).map((plan) => {
             const current = me?.planId === plan.id && me.subscriptionActive
             return (
-              <Panel key={plan.id} title={plan.name} subtitle={`per ${plan.period}`} actions={plan.save ? <Badge tone="success">{plan.save}</Badge> : undefined}>
+              <Panel
+                key={plan.id}
+                title={plan.name}
+                subtitle={`per ${plan.period}`}
+                actions={plan.save ? <Badge tone="success">{plan.save}</Badge> : undefined}
+              >
                 <p className={styles.price}>{formatCurrency(plan.price)}</p>
                 <ul className={styles.features}>
                   {features.map((f) => (
@@ -69,7 +95,11 @@ export default function PlansPage() {
                   disabled={subscribe.isPending || me?.coveredByVendor}
                   variant={current ? 'secondary' : 'primary'}
                 >
-                  {current ? 'Renew this plan' : me?.subscriptionActive ? 'Switch to this plan' : 'Choose plan'}
+                  {current
+                    ? 'Renew this plan'
+                    : me?.subscriptionActive
+                      ? 'Switch to this plan'
+                      : 'Choose plan'}
                 </Button>
               </Panel>
             )

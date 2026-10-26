@@ -43,7 +43,10 @@ export default function CartPage() {
 
   return (
     <div className={shared.stack}>
-      <PageHeader title="Your cart" description="Each service is booked separately, with its own day and time." />
+      <PageHeader
+        title="Your cart"
+        description="Each service is booked separately, with its own day and time."
+      />
       <div className={styles.layout}>
         <Panel title={`${items.length} ${items.length === 1 ? 'service' : 'services'}`} flush>
           <ul className={styles.items}>
@@ -56,17 +59,38 @@ export default function CartPage() {
                   <strong>{item.serviceName}</strong>
                   <span className={shared.muted}>{item.providerName}</span>
                 </div>
-                <div className={styles.qty} role="group" aria-label={`Quantity of ${item.serviceName}`}>
-                  <Button size="sm" variant="secondary" aria-label="One less" disabled={item.qty <= 1} onClick={() => update(item.id, { qty: item.qty - 1 })}>
+                <div
+                  className={styles.qty}
+                  role="group"
+                  aria-label={`Quantity of ${item.serviceName}`}
+                >
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    aria-label="One less"
+                    disabled={item.qty <= 1}
+                    onClick={() => update(item.id, { qty: item.qty - 1 })}
+                  >
                     <Minus size={14} />
                   </Button>
                   <span className={styles.qtyValue}>{item.qty}</span>
-                  <Button size="sm" variant="secondary" aria-label="One more" disabled={item.qty >= 5} onClick={() => update(item.id, { qty: item.qty + 1 })}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    aria-label="One more"
+                    disabled={item.qty >= 5}
+                    onClick={() => update(item.id, { qty: item.qty + 1 })}
+                  >
                     <Plus size={14} />
                   </Button>
                 </div>
                 <strong className={styles.price}>{formatCurrency(item.price * item.qty)}</strong>
-                <Button size="sm" variant="ghost" aria-label={`Remove ${item.serviceName}`} onClick={() => remove(item.id)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label={`Remove ${item.serviceName}`}
+                  onClick={() => remove(item.id)}
+                >
                   <Trash2 size={16} />
                 </Button>
               </li>

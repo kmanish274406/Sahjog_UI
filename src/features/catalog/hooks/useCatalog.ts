@@ -18,9 +18,13 @@ export const useServices = (params: { q?: string; categoryId?: number } = {}) =>
 
 export const useProviders = (serviceId: number) => {
   const tenant = useTenant()
-  return useApiQuery(['catalog', tenant, 'providers', serviceId], () => api.catalog.providers(serviceId), {
-    enabled: Number.isFinite(serviceId),
-  })
+  return useApiQuery(
+    ['catalog', tenant, 'providers', serviceId],
+    () => api.catalog.providers(serviceId),
+    {
+      enabled: Number.isFinite(serviceId),
+    },
+  )
 }
 
 export const useSettings = () => {
@@ -30,7 +34,9 @@ export const useSettings = () => {
 
 export const usePlans = (kind?: string) => {
   const tenant = useTenant()
-  return useApiQuery(['catalog', tenant, 'plans', kind], () => api.catalog.plans(kind), { enabled: kind !== undefined })
+  return useApiQuery(['catalog', tenant, 'plans', kind], () => api.catalog.plans(kind), {
+    enabled: kind !== undefined,
+  })
 }
 
 export interface SlotGroup {
@@ -44,12 +50,16 @@ export interface SlotGroup {
  */
 export function useContent() {
   const tenant = useTenant()
-  const query = useApiQuery(['catalog', tenant, 'content'], api.catalog.content, { staleTime: 5 * 60_000 })
+  const query = useApiQuery(['catalog', tenant, 'content'], api.catalog.content, {
+    staleTime: 5 * 60_000,
+  })
   const rows: ContentDto[] = query.data ?? []
 
   const list = (section: string) => rows.filter((r) => r.section === section)
-  const row = (section: string, code: string) => rows.find((r) => r.section === section && r.code === code)
-  const text = (section: string, code: string, fallback = '') => row(section, code)?.title || fallback
+  const row = (section: string, code: string) =>
+    rows.find((r) => r.section === section && r.code === code)
+  const text = (section: string, code: string, fallback = '') =>
+    row(section, code)?.title || fallback
 
   const slots: SlotGroup[] = []
   for (const r of list('slot')) {

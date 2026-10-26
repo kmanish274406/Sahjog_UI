@@ -15,7 +15,13 @@ export interface OtpSignInProps {
 }
 
 /** Mobile number, then the 6-digit code sent to it. */
-export function OtpSignIn({ sendOtp, verify, askName = false, onSignedIn, defaultPhone = '' }: OtpSignInProps) {
+export function OtpSignIn({
+  sendOtp,
+  verify,
+  askName = false,
+  onSignedIn,
+  defaultPhone = '',
+}: OtpSignInProps) {
   const [phone, setPhone] = useState(defaultPhone)
   const [otp, setOtp] = useState('')
   const [name, setName] = useState('')
@@ -35,7 +41,8 @@ export function OtpSignIn({ sendOtp, verify, askName = false, onSignedIn, defaul
     }
     setPhoneError(undefined)
     if (!sent) send.mutate(clean)
-    else if (otp.trim().length === 6) signIn.mutate({ phone: clean, otp: otp.trim(), name: name.trim() || undefined })
+    else if (otp.trim().length === 6)
+      signIn.mutate({ phone: clean, otp: otp.trim(), name: name.trim() || undefined })
   }
 
   return (
@@ -93,11 +100,19 @@ export function OtpSignIn({ sendOtp, verify, askName = false, onSignedIn, defaul
         </p>
       )}
       <div className={styles.actions}>
-        <Button type="submit" loading={send.isPending || signIn.isPending} disabled={sent !== null && otp.length !== 6}>
+        <Button
+          type="submit"
+          loading={send.isPending || signIn.isPending}
+          disabled={sent !== null && otp.length !== 6}
+        >
           {sent ? 'Verify and sign in' : 'Send OTP'}
         </Button>
         {sent && (
-          <Button variant="ghost" onClick={() => clean && send.mutate(clean)} disabled={send.isPending}>
+          <Button
+            variant="ghost"
+            onClick={() => clean && send.mutate(clean)}
+            disabled={send.isPending}
+          >
             Resend OTP
           </Button>
         )}

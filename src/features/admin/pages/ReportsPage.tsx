@@ -17,17 +17,34 @@ export default function ReportsPage() {
   return (
     <div className={shared.stack}>
       <PageHeader title="Reports" description="Where the revenue comes from." />
-      <QueryState isLoading={report.isLoading || summary.isLoading} error={report.error ?? summary.error}>
+      <QueryState
+        isLoading={report.isLoading || summary.isLoading}
+        error={report.error ?? summary.error}
+      >
         {r && s && (
           <>
             <Grid variant="stats">
-              <StatCard label="Total revenue" value={formatCurrency(r.totalRevenue)} hint={`${r.totalBookings} completed bookings`} />
+              <StatCard
+                label="Total revenue"
+                value={formatCurrency(r.totalRevenue)}
+                hint={`${r.totalBookings} completed bookings`}
+              />
               <StatCard label="Commission earned" value={formatCurrency(s.commission)} />
-              <StatCard label="Average booking" value={formatCurrency(r.totalBookings ? r.totalRevenue / r.totalBookings : 0)} />
+              <StatCard
+                label="Average booking"
+                value={formatCurrency(r.totalBookings ? r.totalRevenue / r.totalBookings : 0)}
+              />
             </Grid>
             <div className={shared.grid2}>
               <Panel title="Share by category">
-                {r.shares.length > 0 ? <BarList items={r.shares.map((x) => ({ label: x.name, value: x.percent }))} formatValue={formatPercent} /> : <p className={shared.muted}>No completed bookings yet.</p>}
+                {r.shares.length > 0 ? (
+                  <BarList
+                    items={r.shares.map((x) => ({ label: x.name, value: x.percent }))}
+                    formatValue={formatPercent}
+                  />
+                ) : (
+                  <p className={shared.muted}>No completed bookings yet.</p>
+                )}
               </Panel>
               <Panel title="Category table" flush>
                 <DataTable
@@ -36,8 +53,18 @@ export default function ReportsPage() {
                   emptyMessage="No completed bookings yet."
                   columns={[
                     { key: 'name', header: 'Category', render: (x) => x.name },
-                    { key: 'percent', header: 'Share', align: 'right', render: (x) => formatPercent(x.percent) },
-                    { key: 'revenue', header: 'Revenue', align: 'right', render: (x) => formatCurrency((r.totalRevenue * x.percent) / 100) },
+                    {
+                      key: 'percent',
+                      header: 'Share',
+                      align: 'right',
+                      render: (x) => formatPercent(x.percent),
+                    },
+                    {
+                      key: 'revenue',
+                      header: 'Revenue',
+                      align: 'right',
+                      render: (x) => formatCurrency((r.totalRevenue * x.percent) / 100),
+                    },
                   ]}
                 />
               </Panel>

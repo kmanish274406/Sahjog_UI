@@ -20,7 +20,10 @@ export function PlaceSearch({ onPick }: PlaceSearchProps) {
   const [term, setTerm] = useState('')
   const [open, setOpen] = useState(false)
   const query = useDebounce(term.trim(), 350)
-  const suggestions = useApiQuery(['places', query], () => api.places.search(query), { enabled: query.length >= 3, staleTime: 60_000 })
+  const suggestions = useApiQuery(['places', query], () => api.places.search(query), {
+    enabled: query.length >= 3,
+    staleTime: 60_000,
+  })
 
   const details = useApiMutation((placeId: string) => api.places.details(placeId), {
     onSuccess: (place) => {
@@ -29,9 +32,12 @@ export function PlaceSearch({ onPick }: PlaceSearchProps) {
       setOpen(false)
     },
   })
-  const locate = useApiMutation((pos: { lat: number; lng: number }) => api.places.reverse(pos.lat, pos.lng), {
-    onSuccess: (place) => onPick(place.address),
-  })
+  const locate = useApiMutation(
+    (pos: { lat: number; lng: number }) => api.places.reverse(pos.lat, pos.lng),
+    {
+      onSuccess: (place) => onPick(place.address),
+    },
+  )
 
   const useMyLocation = () => {
     if (!navigator.geolocation) {
@@ -39,8 +45,10 @@ export function PlaceSearch({ onPick }: PlaceSearchProps) {
       return
     }
     navigator.geolocation.getCurrentPosition(
-      (position) => locate.mutate({ lat: position.coords.latitude, lng: position.coords.longitude }),
-      () => toast.error('Allow location access in your browser, or search for your address instead.'),
+      (position) =>
+        locate.mutate({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      () =>
+        toast.error('Allow location access in your browser, or search for your address instead.'),
       { timeout: 10_000 },
     )
   }
@@ -68,7 +76,12 @@ export function PlaceSearch({ onPick }: PlaceSearchProps) {
         <ul className={styles.list} role="listbox">
           {items.map((s) => (
             <li key={s.placeId}>
-              <button type="button" className={styles.option} onClick={() => details.mutate(s.placeId)} disabled={details.isPending}>
+              <button
+                type="button"
+                className={styles.option}
+                onClick={() => details.mutate(s.placeId)}
+                disabled={details.isPending}
+              >
                 <span className={styles.title}>{s.title}</span>
                 <span className={styles.subtitle}>{s.subtitle}</span>
               </button>

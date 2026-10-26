@@ -13,7 +13,9 @@ import shared from '@/styles/shared.module.css'
 export default function TeamPage() {
   const team = useApiQuery(['vendor', 'technicians'], api.vendor.technicians)
   const [adding, setAdding] = useState(false)
-  const remove = useApiMutation((id: number) => api.vendor.removeTechnician(id), { meta: { success: 'Technician removed from your team.' } })
+  const remove = useApiMutation((id: number) => api.vendor.removeTechnician(id), {
+    meta: { success: 'Technician removed from your team.' },
+  })
 
   const columns: Column<StaffDto>[] = [
     {
@@ -27,8 +29,23 @@ export default function TeamPage() {
       ),
     },
     { key: 'skill', header: 'Skill', render: (t) => t.skill || '-' },
-    { key: 'phone', header: 'Phone', render: (t) => <span className={shared.mono}>{t.phone || '-'}</span> },
-    { key: 'status', header: 'Status', render: (t) => (!t.active ? <Badge tone="danger">Disabled</Badge> : t.onJob ? <Badge tone="warning">On a job</Badge> : <Badge tone="success">Available</Badge>) },
+    {
+      key: 'phone',
+      header: 'Phone',
+      render: (t) => <span className={shared.mono}>{t.phone || '-'}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (t) =>
+        !t.active ? (
+          <Badge tone="danger">Disabled</Badge>
+        ) : t.onJob ? (
+          <Badge tone="warning">On a job</Badge>
+        ) : (
+          <Badge tone="success">Available</Badge>
+        ),
+    },
     {
       key: 'actions',
       header: '',
@@ -63,7 +80,11 @@ export default function TeamPage() {
       <QueryState isLoading={team.isLoading} error={team.error}>
         <Panel flush>
           {team.data && team.data.length === 0 ? (
-            <EmptyState icon={UsersRound} title="No technicians yet" action={<Button onClick={() => setAdding(true)}>Add your first technician</Button>}>
+            <EmptyState
+              icon={UsersRound}
+              title="No technicians yet"
+              action={<Button onClick={() => setAdding(true)}>Add your first technician</Button>}
+            >
               Add the people who do the work, so you can assign accepted orders to them.
             </EmptyState>
           ) : (
@@ -82,10 +103,18 @@ function AddForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('')
   const [skill, setSkill] = useState('')
   const [phone, setPhone] = useState('')
-  const add = useApiMutation(() => api.vendor.addTechnician({ name: name.trim(), skill: skill.trim() || undefined, phone: phone.trim() || undefined }), {
-    meta: { inline: true, success: 'Technician added.' },
-    onSuccess: onDone,
-  })
+  const add = useApiMutation(
+    () =>
+      api.vendor.addTechnician({
+        name: name.trim(),
+        skill: skill.trim() || undefined,
+        phone: phone.trim() || undefined,
+      }),
+    {
+      meta: { inline: true, success: 'Technician added.' },
+      onSuccess: onDone,
+    },
+  )
 
   return (
     <form
@@ -95,9 +124,27 @@ function AddForm({ onDone }: { onDone: () => void }) {
         add.mutate(undefined)
       }}
     >
-      <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
-      <Input label="Skill" placeholder="For example AC technician" value={skill} onChange={(e) => setSkill(e.target.value)} maxLength={80} />
-      <Input label="Mobile number" type="tel" inputMode="numeric" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Input
+        label="Name"
+        required
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={80}
+      />
+      <Input
+        label="Skill"
+        placeholder="For example AC technician"
+        value={skill}
+        onChange={(e) => setSkill(e.target.value)}
+        maxLength={80}
+      />
+      <Input
+        label="Mobile number"
+        type="tel"
+        inputMode="numeric"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
       {add.isError && <Alert tone="danger">{add.error.message}</Alert>}
       <div className={shared.formActions}>
         <Button variant="secondary" onClick={onDone}>

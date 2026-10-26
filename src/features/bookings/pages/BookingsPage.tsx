@@ -26,9 +26,15 @@ export default function BookingsPage() {
   const [term, setTerm] = useState('')
 
   const bookings = useApiQuery(['bookings'], api.bookings.list, { refetchInterval: 20_000 })
-  const accept = useApiMutation((code: string) => api.bookings.accept(code), { meta: { success: 'Order accepted. Assign a technician next.' } })
-  const reject = useApiMutation((code: string) => api.bookings.reject(code), { meta: { success: 'Order rejected.' } })
-  const take = useApiMutation((code: string) => api.bookings.take(code), { meta: { success: 'Job added to My jobs.' } })
+  const accept = useApiMutation((code: string) => api.bookings.accept(code), {
+    meta: { success: 'Order accepted. Assign a technician next.' },
+  })
+  const reject = useApiMutation((code: string) => api.bookings.reject(code), {
+    meta: { success: 'Order rejected.' },
+  })
+  const take = useApiMutation((code: string) => api.bookings.take(code), {
+    meta: { success: 'Job added to My jobs.' },
+  })
 
   const current = views.find((v) => v.id === view) ?? views[0]!
   const all = bookings.data ?? []
@@ -57,9 +63,31 @@ export default function BookingsPage() {
       ),
     },
     ...(role === 'customer'
-      ? [{ key: 'provider', header: 'Provider', render: (b: BookingDto) => b.technician ? `${b.provider} · ${b.technician}` : b.provider }]
-      : [{ key: 'customer', header: 'Customer', minWidth: 130, render: (b: BookingDto) => b.customer }]),
-    ...(role === 'admin' ? [{ key: 'provider', header: 'Provider', render: (b: BookingDto) => b.provider || 'Open job' }] : []),
+      ? [
+          {
+            key: 'provider',
+            header: 'Provider',
+            render: (b: BookingDto) =>
+              b.technician ? `${b.provider} · ${b.technician}` : b.provider,
+          },
+        ]
+      : [
+          {
+            key: 'customer',
+            header: 'Customer',
+            minWidth: 130,
+            render: (b: BookingDto) => b.customer,
+          },
+        ]),
+    ...(role === 'admin'
+      ? [
+          {
+            key: 'provider',
+            header: 'Provider',
+            render: (b: BookingDto) => b.provider || 'Open job',
+          },
+        ]
+      : []),
     {
       key: 'when',
       header: 'When',
@@ -69,7 +97,12 @@ export default function BookingsPage() {
         </span>
       ),
     },
-    { key: 'amount', header: role === 'customer' ? 'Total' : 'Amount', align: 'right', render: (b) => formatCurrency(role === 'customer' ? b.total : b.amount) },
+    {
+      key: 'amount',
+      header: role === 'customer' ? 'Total' : 'Amount',
+      align: 'right',
+      render: (b) => formatCurrency(role === 'customer' ? b.total : b.amount),
+    },
     { key: 'stage', header: 'Status', render: (b) => <StageBadge stage={b.stage} /> },
     {
       key: 'actions',
@@ -79,10 +112,19 @@ export default function BookingsPage() {
         <span className={shared.row} style={{ justifyContent: 'flex-end' }}>
           {role === 'vendor' && b.stage === 'Requested' && (
             <>
-              <Button size="sm" onClick={() => accept.mutate(b.id)} disabled={accept.isPending || reject.isPending}>
+              <Button
+                size="sm"
+                onClick={() => accept.mutate(b.id)}
+                disabled={accept.isPending || reject.isPending}
+              >
                 Accept
               </Button>
-              <Button size="sm" variant="secondary" onClick={() => reject.mutate(b.id)} disabled={accept.isPending || reject.isPending}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => reject.mutate(b.id)}
+                disabled={accept.isPending || reject.isPending}
+              >
                 Reject
               </Button>
             </>
@@ -92,11 +134,14 @@ export default function BookingsPage() {
               <Button size="sm">Assign technician</Button>
             </Link>
           )}
-          {role === 'technician' && b.independent && b.stage === 'Requested' && b.technicianId === null && (
-            <Button size="sm" onClick={() => take.mutate(b.id)} disabled={take.isPending}>
-              Take job
-            </Button>
-          )}
+          {role === 'technician' &&
+            b.independent &&
+            b.stage === 'Requested' &&
+            b.technicianId === null && (
+              <Button size="sm" onClick={() => take.mutate(b.id)} disabled={take.isPending}>
+                Take job
+              </Button>
+            )}
           <Link to={bookingPath(b.id)}>
             <Button size="sm" variant="secondary">
               Details
@@ -107,7 +152,9 @@ export default function BookingsPage() {
     },
   ]
 
-  const counts = Object.fromEntries(views.map((v) => [v.id, all.filter((b) => v.filter(b, user.id)).length]))
+  const counts = Object.fromEntries(
+    views.map((v) => [v.id, all.filter((b) => v.filter(b, user.id)).length]),
+  )
   const tabs = views.map((v) => ({ id: v.id, label: `${v.label} (${counts[v.id]})` }))
   const text = BOOKINGS_TITLE[role]
 
@@ -126,13 +173,20 @@ export default function BookingsPage() {
       />
       <Toolbar>
         <Tabs items={tabs} active={current.id} onChange={setView} label="Show" />
-        <SearchInput label="Search bookings" placeholder="Search by booking, service or name" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <SearchInput
+          label="Search bookings"
+          placeholder="Search by booking, service or name"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+        />
       </Toolbar>
       <QueryState isLoading={bookings.isLoading} error={bookings.error}>
         <Panel flush>
           {rows.length === 0 ? (
             <EmptyState icon={CalendarX} title="Nothing here">
-              {term ? 'No booking matches your search.' : 'There are no bookings in this list right now.'}
+              {term
+                ? 'No booking matches your search.'
+                : 'There are no bookings in this list right now.'}
             </EmptyState>
           ) : (
             <DataTable columns={columns} rows={rows} getRowId={(b) => b.id} />

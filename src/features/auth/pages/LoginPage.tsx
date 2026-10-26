@@ -53,7 +53,12 @@ export function LoginPage() {
   const from = (location.state as LocationState | null)?.from?.pathname
 
   if (user) {
-    return <Navigate to={user.role === 'super_admin' ? ROUTES.clients : (from ?? ROUTES.dashboard)} replace />
+    return (
+      <Navigate
+        to={user.role === 'super_admin' ? ROUTES.clients : (from ?? ROUTES.dashboard)}
+        replace
+      />
+    )
   }
 
   const signedIn = (result: AuthResult) => {
@@ -80,8 +85,8 @@ export function LoginPage() {
         <div>
           <p className={styles.tagline}>Har kaam ka saathi, one tap away.</p>
           <p className={styles.taglineSub}>
-            Customers book verified professionals, vendors run their orders and teams, technicians take jobs, and
-            every business is managed from one console.
+            Customers book verified professionals, vendors run their orders and teams, technicians
+            take jobs, and every business is managed from one console.
           </p>
         </div>
         <p className={styles.legal}>© 2026 Sahjog. All rights reserved.</p>
@@ -110,8 +115,14 @@ export function LoginPage() {
                 <CustomerEmailSignIn onSignedIn={signedIn} />
               )}
               <p className={styles.switchRow}>
-                <Button variant="ghost" size="sm" onClick={() => setCustomerMode(customerMode === 'otp' ? 'email' : 'otp')}>
-                  {customerMode === 'otp' ? 'Use email and password instead' : 'Use my mobile number instead'}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCustomerMode(customerMode === 'otp' ? 'email' : 'otp')}
+                >
+                  {customerMode === 'otp'
+                    ? 'Use email and password instead'
+                    : 'Use my mobile number instead'}
                 </Button>
               </p>
             </>
@@ -154,13 +165,19 @@ export function LoginPage() {
               signIn={api.auth.platformLogin}
               onSignedIn={ownerSignedIn}
               emailLabel="Owner email"
-              defaults={DEMO ? { email: 'superadmin@sahjog.in', password: 'SuperAdmin@123' } : undefined}
+              defaults={
+                DEMO ? { email: 'superadmin@sahjog.in', password: 'SuperAdmin@123' } : undefined
+              }
             />
           )}
 
           {(who === 'vendor' || who === 'technician') && (
             <p className={styles.switchRow}>
-              {registering ? 'Already registered? ' : who === 'vendor' ? 'New vendor? ' : 'New technician? '}
+              {registering
+                ? 'Already registered? '
+                : who === 'vendor'
+                  ? 'New vendor? '
+                  : 'New technician? '}
               <Button variant="ghost" size="sm" onClick={() => setRegistering(!registering)}>
                 {registering ? 'Sign in' : 'Register'}
               </Button>
@@ -181,8 +198,8 @@ export function LoginPage() {
 
           {DEMO && (
             <p className={styles.note} style={{ marginTop: 16 }}>
-              Development build: the fields are pre-filled with the demo accounts. The OTP is shown on screen
-              while the API's demo mode is on. API: {env.apiUrl}
+              Development build: the fields are pre-filled with the demo accounts. The OTP is shown
+              on screen while the API's demo mode is on. API: {env.apiUrl}
             </p>
           )}
         </div>

@@ -14,7 +14,12 @@ export interface EmailSignInProps<TResult> {
 }
 
 /** Email and password: admins and the platform owner. */
-export function EmailSignIn<TResult>({ signIn, onSignedIn, defaults, emailLabel = 'Email' }: EmailSignInProps<TResult>) {
+export function EmailSignIn<TResult>({
+  signIn,
+  onSignedIn,
+  defaults,
+  emailLabel = 'Email',
+}: EmailSignInProps<TResult>) {
   const login = useApiMutation((v: EmailLoginValues) => signIn(v.email.trim(), v.password), {
     meta: { inline: true },
     onSuccess: onSignedIn,
@@ -23,11 +28,25 @@ export function EmailSignIn<TResult>({ signIn, onSignedIn, defaults, emailLabel 
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<EmailLoginValues>({ resolver: zodResolver(emailLoginSchema), defaultValues: defaults })
+  } = useForm<EmailLoginValues>({
+    resolver: zodResolver(emailLoginSchema),
+    defaultValues: defaults,
+  })
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit((values) => login.mutate(values))} noValidate>
-      <Input label={emailLabel} required type="email" autoComplete="username" error={errors.email?.message} {...register('email')} />
+    <form
+      className={styles.form}
+      onSubmit={handleSubmit((values) => login.mutate(values))}
+      noValidate
+    >
+      <Input
+        label={emailLabel}
+        required
+        type="email"
+        autoComplete="username"
+        error={errors.email?.message}
+        {...register('email')}
+      />
       <Input
         label="Password"
         required
@@ -56,19 +75,37 @@ export interface PhoneSignInProps<TResult> {
 
 /** Mobile number and password: vendors. */
 export function PhoneSignIn<TResult>({ signIn, onSignedIn, defaults }: PhoneSignInProps<TResult>) {
-  const login = useApiMutation((v: VendorLoginValues) => signIn(v.phone.replace(/\D/g, '').slice(-10), v.password), {
-    meta: { inline: true },
-    onSuccess: onSignedIn,
-  })
+  const login = useApiMutation(
+    (v: VendorLoginValues) => signIn(v.phone.replace(/\D/g, '').slice(-10), v.password),
+    {
+      meta: { inline: true },
+      onSuccess: onSignedIn,
+    },
+  )
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<VendorLoginValues>({ resolver: zodResolver(vendorLoginSchema), defaultValues: defaults })
+  } = useForm<VendorLoginValues>({
+    resolver: zodResolver(vendorLoginSchema),
+    defaultValues: defaults,
+  })
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit((values) => login.mutate(values))} noValidate>
-      <Input label="Mobile number" required type="tel" inputMode="numeric" autoComplete="tel" error={errors.phone?.message} {...register('phone')} />
+    <form
+      className={styles.form}
+      onSubmit={handleSubmit((values) => login.mutate(values))}
+      noValidate
+    >
+      <Input
+        label="Mobile number"
+        required
+        type="tel"
+        inputMode="numeric"
+        autoComplete="tel"
+        error={errors.phone?.message}
+        {...register('phone')}
+      />
       <Input
         label="Password"
         required

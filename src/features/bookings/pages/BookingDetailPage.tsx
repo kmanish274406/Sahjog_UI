@@ -18,7 +18,9 @@ export default function BookingDetailPage() {
   const { code = '' } = useParams()
   const user = useAuthStore((state) => state.user)!
   const role = user.role === 'super_admin' ? 'admin' : user.role
-  const booking = useApiQuery(['bookings', code], () => api.bookings.get(code), { refetchInterval: 15_000 })
+  const booking = useApiQuery(['bookings', code], () => api.bookings.get(code), {
+    refetchInterval: 15_000,
+  })
   const b = booking.data
 
   return (
@@ -49,7 +51,14 @@ export default function BookingDetailPage() {
                     { label: 'Time', value: b.time },
                     { label: 'Address', value: b.address },
                     { label: 'Notes', value: b.notes || '-' },
-                    ...(role !== 'customer' ? [{ label: 'Customer', value: `${b.customer}${b.phone ? ` · ${b.phone}` : ''}` }] : []),
+                    ...(role !== 'customer'
+                      ? [
+                          {
+                            label: 'Customer',
+                            value: `${b.customer}${b.phone ? ` · ${b.phone}` : ''}`,
+                          },
+                        ]
+                      : []),
                     { label: 'Provider', value: b.provider || 'Open job' },
                     { label: 'Technician', value: b.technician ?? 'Not assigned yet' },
                     { label: 'Distance', value: b.distance || '-' },

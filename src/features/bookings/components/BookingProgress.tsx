@@ -15,8 +15,19 @@ export function BookingProgress({ stage }: { stage: BookingStage }) {
         const done = index < reached || (index === reached && stage === 'Completed')
         const now = index === reached && !done
         return (
-          <li key={step} className={clsx(styles.step, done && styles.done, now && styles.now, failed && styles.muted)} aria-current={now ? 'step' : undefined}>
-            <span className={styles.dot}>{done ? <Check size={14} aria-hidden="true" /> : index + 1}</span>
+          <li
+            key={step}
+            className={clsx(
+              styles.step,
+              done && styles.done,
+              now && styles.now,
+              failed && styles.muted,
+            )}
+            aria-current={now ? 'step' : undefined}
+          >
+            <span className={styles.dot}>
+              {done ? <Check size={14} aria-hidden="true" /> : index + 1}
+            </span>
             <span className={styles.label}>{STAGE_LABELS[step]}</span>
           </li>
         )

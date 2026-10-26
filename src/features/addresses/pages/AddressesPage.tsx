@@ -13,7 +13,9 @@ import { PlaceSearch } from '../components/PlaceSearch'
 export default function AddressesPage() {
   const addresses = useApiQuery(['addresses'], api.customer.addresses)
   const [editing, setEditing] = useState<AddressDto | 'new' | null>(null)
-  const remove = useApiMutation((id: number) => api.customer.deleteAddress(id), { meta: { success: 'Address removed.' } })
+  const remove = useApiMutation((id: number) => api.customer.deleteAddress(id), {
+    meta: { success: 'Address removed.' },
+  })
 
   return (
     <div className={shared.stack}>
@@ -29,7 +31,11 @@ export default function AddressesPage() {
       <QueryState isLoading={addresses.isLoading} error={addresses.error}>
         {addresses.data && addresses.data.length === 0 ? (
           <Panel>
-            <EmptyState icon={MapPin} title="No saved addresses yet" action={<Button onClick={() => setEditing('new')}>Add your first address</Button>}>
+            <EmptyState
+              icon={MapPin}
+              title="No saved addresses yet"
+              action={<Button onClick={() => setEditing('new')}>Add your first address</Button>}
+            >
               Save your home or office so booking takes one less step.
             </EmptyState>
           </Panel>
@@ -41,7 +47,12 @@ export default function AddressesPage() {
                 title={address.label}
                 actions={
                   <span className={shared.row}>
-                    <Button size="sm" variant="ghost" aria-label={`Edit ${address.label}`} onClick={() => setEditing(address)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={`Edit ${address.label}`}
+                      onClick={() => setEditing(address)}
+                    >
                       <Pencil size={15} />
                     </Button>
                     <Button
@@ -69,10 +80,27 @@ export default function AddressesPage() {
   )
 }
 
-function AddressModal({ editing, onClose }: { editing: AddressDto | 'new' | null; onClose: () => void }) {
+function AddressModal({
+  editing,
+  onClose,
+}: {
+  editing: AddressDto | 'new' | null
+  onClose: () => void
+}) {
   return (
-    <Modal open={editing !== null} title={editing === 'new' ? 'Add an address' : 'Edit address'} onClose={onClose} wide>
-      {editing !== null && <AddressForm key={editing === 'new' ? 'new' : editing.id} editing={editing} onDone={onClose} />}
+    <Modal
+      open={editing !== null}
+      title={editing === 'new' ? 'Add an address' : 'Edit address'}
+      onClose={onClose}
+      wide
+    >
+      {editing !== null && (
+        <AddressForm
+          key={editing === 'new' ? 'new' : editing.id}
+          editing={editing}
+          onDone={onClose}
+        />
+      )}
     </Modal>
   )
 }
@@ -82,7 +110,10 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
   const [label, setLabel] = useState(existing?.label ?? 'Home')
   const [text, setText] = useState(existing?.text ?? '')
   const save = useApiMutation(
-    () => (existing ? api.customer.updateAddress(existing.id, { label, text }) : api.customer.addAddress({ label, text })),
+    () =>
+      existing
+        ? api.customer.updateAddress(existing.id, { label, text })
+        : api.customer.addAddress({ label, text }),
     { meta: { inline: true, success: 'Address saved.' }, onSuccess: onDone },
   )
 
@@ -95,7 +126,14 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
       }}
     >
       <PlaceSearch onPick={setText} />
-      <Input label="Label" required hint="For example Home, Office or Mom's place." value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} />
+      <Input
+        label="Label"
+        required
+        hint="For example Home, Office or Mom's place."
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        maxLength={40}
+      />
       <Textarea
         label="Full address"
         required
@@ -114,7 +152,11 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" loading={save.isPending} disabled={!label.trim() || text.trim().length < 8}>
+        <Button
+          type="submit"
+          loading={save.isPending}
+          disabled={!label.trim() || text.trim().length < 8}
+        >
           Save address
         </Button>
       </div>

@@ -11,7 +11,15 @@ export interface EmptyStateProps {
 /** A calm "nothing here yet" block, with the next step when there is one. */
 export function EmptyState({ icon: Icon, title, children, action }: EmptyStateProps) {
   return (
-    <div style={{ display: 'grid', justifyItems: 'center', gap: 8, padding: '40px 16px', textAlign: 'center' }}>
+    <div
+      style={{
+        display: 'grid',
+        justifyItems: 'center',
+        gap: 8,
+        padding: '40px 16px',
+        textAlign: 'center',
+      }}
+    >
       {Icon && <Icon size={34} style={{ color: 'var(--color-text-subtle)' }} aria-hidden="true" />}
       <h3 style={{ fontSize: 18 }}>{title}</h3>
       {children && <p style={{ maxWidth: 420, color: 'var(--color-text-muted)' }}>{children}</p>}

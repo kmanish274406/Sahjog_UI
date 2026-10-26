@@ -45,7 +45,8 @@ export default function ServiceDetailPage() {
       header: 'Provider',
       render: (p) => (
         <span>
-          <span aria-hidden="true">{p?.emoji ?? '🛠️'}</span> <strong>{p?.name ?? 'Any available technician'}</strong>
+          <span aria-hidden="true">{p?.emoji ?? '🛠️'}</span>{' '}
+          <strong>{p?.name ?? 'Any available technician'}</strong>
           {!p && <span className={shared.muted}> (an open job any technician can take)</span>}
         </span>
       ),
@@ -63,8 +64,17 @@ export default function ServiceDetailPage() {
           <span className={shared.muted}>New</span>
         ),
     },
-    { key: 'distance', header: 'Distance', render: (p) => (p ? `${p.distanceKm.toFixed(1)} km` : '-') },
-    { key: 'price', header: 'Price', align: 'right', render: (p) => <strong>{formatCurrency(p?.price ?? service?.basePrice ?? 0)}</strong> },
+    {
+      key: 'distance',
+      header: 'Distance',
+      render: (p) => (p ? `${p.distanceKm.toFixed(1)} km` : '-'),
+    },
+    {
+      key: 'price',
+      header: 'Price',
+      align: 'right',
+      render: (p) => <strong>{formatCurrency(p?.price ?? service?.basePrice ?? 0)}</strong>,
+    },
     {
       key: 'actions',
       header: '',
@@ -97,7 +107,11 @@ export default function ServiceDetailPage() {
               {content.list('feature').map((f, index) => {
                 const Icon = FEATURE_ICONS[index % FEATURE_ICONS.length]!
                 return (
-                  <div key={f.id} className={shared.callout} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div
+                    key={f.id}
+                    className={shared.callout}
+                    style={{ display: 'flex', gap: 12, alignItems: 'center' }}
+                  >
                     <Icon size={22} style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
                     <strong style={{ whiteSpace: 'pre-line' }}>{f.title}</strong>
                   </div>
@@ -109,15 +123,28 @@ export default function ServiceDetailPage() {
                 <ul className={shared.list}>
                   {service.includes.map((item) => (
                     <li key={item} className={shared.row} style={{ gap: 8 }}>
-                      <Check size={16} style={{ color: 'var(--color-success)' }} aria-hidden="true" /> {item}
+                      <Check
+                        size={16}
+                        style={{ color: 'var(--color-success)' }}
+                        aria-hidden="true"
+                      />{' '}
+                      {item}
                     </li>
                   ))}
                 </ul>
               </Panel>
             )}
-            <Panel title="Choose a provider" subtitle="Each provider sets their own price. Their ratings come from completed jobs." flush>
+            <Panel
+              title="Choose a provider"
+              subtitle="Each provider sets their own price. Their ratings come from completed jobs."
+              flush
+            >
               <QueryState isLoading={providers.isLoading} error={providers.error}>
-                <DataTable columns={columns} rows={rows} getRowId={(p) => String(p?.vendorServiceId ?? 'open')} />
+                <DataTable
+                  columns={columns}
+                  rows={rows}
+                  getRowId={(p) => String(p?.vendorServiceId ?? 'open')}
+                />
               </QueryState>
             </Panel>
           </>

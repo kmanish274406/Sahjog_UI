@@ -12,10 +12,13 @@ import styles from './LoginForm.module.css'
 /** Customers can also use an email and password; "Create account" signs a new one up. */
 export function CustomerEmailSignIn({ onSignedIn }: { onSignedIn: (result: AuthResult) => void }) {
   const [signUp, setSignUp] = useState(false)
-  const login = useApiMutation((v: EmailLoginValues) => api.auth.customerEmail({ ...v, email: v.email.trim(), signUp }), {
-    meta: { inline: true },
-    onSuccess: onSignedIn,
-  })
+  const login = useApiMutation(
+    (v: EmailLoginValues) => api.auth.customerEmail({ ...v, email: v.email.trim(), signUp }),
+    {
+      meta: { inline: true },
+      onSuccess: onSignedIn,
+    },
+  )
   const {
     register,
     handleSubmit,
@@ -23,10 +26,25 @@ export function CustomerEmailSignIn({ onSignedIn }: { onSignedIn: (result: AuthR
   } = useForm<EmailLoginValues>({ resolver: zodResolver(emailLoginSchema) })
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit((values) => login.mutate(values))} noValidate>
-      <Checkbox label="I am new here: create my account" checked={signUp} onChange={(event) => setSignUp(event.target.checked)} />
+    <form
+      className={styles.form}
+      onSubmit={handleSubmit((values) => login.mutate(values))}
+      noValidate
+    >
+      <Checkbox
+        label="I am new here: create my account"
+        checked={signUp}
+        onChange={(event) => setSignUp(event.target.checked)}
+      />
       {signUp && <Input label="Your name" autoComplete="name" {...register('name')} />}
-      <Input label="Email" required type="email" autoComplete="username" error={errors.email?.message} {...register('email')} />
+      <Input
+        label="Email"
+        required
+        type="email"
+        autoComplete="username"
+        error={errors.email?.message}
+        {...register('email')}
+      />
       <Input
         label="Password"
         required

@@ -29,9 +29,17 @@ export default function ServicesPage() {
 
   return (
     <div className={shared.stack}>
-      <PageHeader title="All services" description="Compare providers and fixed prices, then book in a few taps." />
+      <PageHeader
+        title="All services"
+        description="Compare providers and fixed prices, then book in a few taps."
+      />
       <Toolbar>
-        <SearchInput label="Search services" placeholder="Search by service or category" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <SearchInput
+          label="Search services"
+          placeholder="Search by service or category"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+        />
         <Select
           label="Category"
           placeholder="All categories"
@@ -47,7 +55,9 @@ export default function ServicesPage() {
           </EmptyState>
         ) : (
           <div className={shared.grid3}>
-            {services.data?.map((service) => <ServiceCard key={service.id} service={service} />)}
+            {services.data?.map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
           </div>
         )}
       </QueryState>

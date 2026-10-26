@@ -35,7 +35,13 @@ export const STAGE_LABELS: Record<BookingStage, string> = {
 }
 
 /** The order a booking moves through, for the progress steps on the booking screen. */
-export const STAGE_FLOW: BookingStage[] = ['Requested', 'Accepted', 'Assigned', 'InProgress', 'Completed']
+export const STAGE_FLOW: BookingStage[] = [
+  'Requested',
+  'Accepted',
+  'Assigned',
+  'InProgress',
+  'Completed',
+]
 
 export const PAYMENT_METHODS = ['UPI', 'QR', 'Card', 'Net Banking', 'Wallet'] as const
 

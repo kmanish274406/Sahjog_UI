@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { api } from '@/api'
 import { Alert, Button } from '@/components/ui'
@@ -14,10 +15,11 @@ import styles from './AppLayout.module.css'
 /** Tells a vendor or technician where their subscription stands, on every page: without one they cannot take work. */
 function SubscriptionBanner() {
   const { data } = useApiQuery(['profile'], api.auth.me)
+  const [now] = useState(() => Date.now())
   if (!data || data.coveredByVendor) return null
   if (data.subscriptionActive) {
     const expiry = data.planExpiry ? new Date(data.planExpiry) : null
-    const days = expiry ? Math.ceil((expiry.getTime() - Date.now()) / 86_400_000) : 99
+    const days = expiry ? Math.ceil((expiry.getTime() - now) / 86_400_000) : 99
     if (days > 7) return null
     return (
       <Alert

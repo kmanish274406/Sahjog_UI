@@ -1,12 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
-
-// The mock APIs simulate network latency; tests don't need to wait for it.
-vi.mock('@/lib/mock', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/mock')>()),
-  delay: () => Promise.resolve(),
-}))
+import { afterEach } from 'vitest'
 
 // jsdom does not implement the <dialog> methods the Modal relies on.
 if (typeof HTMLDialogElement !== 'undefined') {

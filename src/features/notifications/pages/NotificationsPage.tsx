@@ -9,10 +9,14 @@ import shared from '@/styles/shared.module.css'
 import { formatDateTime } from '@/utils/format'
 
 export default function NotificationsPage() {
-  const notices = useApiQuery(['notifications'], api.notifications.list, { refetchInterval: 30_000 })
+  const notices = useApiQuery(['notifications'], api.notifications.list, {
+    refetchInterval: 30_000,
+  })
   const markRead = useApiMutation(api.notifications.markRead)
   const dismiss = useApiMutation((id: number) => api.notifications.dismiss(id))
-  const clear = useApiMutation(api.notifications.clear, { meta: { success: 'Notifications cleared.' } })
+  const clear = useApiMutation(api.notifications.clear, {
+    meta: { success: 'Notifications cleared.' },
+  })
   const data = notices.data
 
   return (
@@ -22,10 +26,20 @@ export default function NotificationsPage() {
         description="Updates about your bookings, payments and account."
         actions={
           <span className={shared.row}>
-            <Button variant="secondary" onClick={() => markRead.mutate(undefined)} disabled={!data || data.unread === 0} loading={markRead.isPending}>
+            <Button
+              variant="secondary"
+              onClick={() => markRead.mutate(undefined)}
+              disabled={!data || data.unread === 0}
+              loading={markRead.isPending}
+            >
               Mark all as read
             </Button>
-            <Button variant="secondary" onClick={() => clear.mutate(undefined)} disabled={!data || data.items.length === 0} loading={clear.isPending}>
+            <Button
+              variant="secondary"
+              onClick={() => clear.mutate(undefined)}
+              disabled={!data || data.items.length === 0}
+              loading={clear.isPending}
+            >
               Clear all
             </Button>
           </span>
@@ -43,7 +57,11 @@ export default function NotificationsPage() {
                 <li
                   key={n.id}
                   className={shared.spread}
-                  style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border)', background: n.unread ? 'var(--color-primary-soft)' : undefined }}
+                  style={{
+                    padding: '14px 20px',
+                    borderBottom: '1px solid var(--color-border)',
+                    background: n.unread ? 'var(--color-primary-soft)' : undefined,
+                  }}
                 >
                   <div>
                     <p>
@@ -51,7 +69,13 @@ export default function NotificationsPage() {
                     </p>
                     <p className={`${shared.muted} ${shared.small}`}>{formatDateTime(n.when)}</p>
                   </div>
-                  <Button size="sm" variant="ghost" aria-label="Dismiss" onClick={() => dismiss.mutate(n.id)} disabled={dismiss.isPending}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    aria-label="Dismiss"
+                    onClick={() => dismiss.mutate(n.id)}
+                    disabled={dismiss.isPending}
+                  >
                     <X size={15} />
                   </Button>
                 </li>

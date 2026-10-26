@@ -40,11 +40,14 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           // The same service from the same provider is one line: adding it again adds a unit.
           const same = state.items.find(
-            (i) => i.serviceItemId === item.serviceItemId && i.vendorServiceId === item.vendorServiceId,
+            (i) =>
+              i.serviceItemId === item.serviceItemId && i.vendorServiceId === item.vendorServiceId,
           )
           if (same) {
             return {
-              items: state.items.map((i) => (i === same ? { ...i, qty: Math.min(5, i.qty + (item.qty ?? 1)) } : i)),
+              items: state.items.map((i) =>
+                i === same ? { ...i, qty: Math.min(5, i.qty + (item.qty ?? 1)) } : i,
+              ),
             }
           }
           const entry: CartItem = {
@@ -57,7 +60,8 @@ export const useCartStore = create<CartState>()(
           }
           return { items: [...state.items, entry] }
         }),
-      update: (id, patch) => set((state) => ({ items: state.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
+      update: (id, patch) =>
+        set((state) => ({ items: state.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
       remove: (id) => set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
       clear: () => set({ items: [] }),
     }),
@@ -66,4 +70,5 @@ export const useCartStore = create<CartState>()(
 )
 
 export const cartCount = (items: CartItem[]) => items.reduce((total, item) => total + item.qty, 0)
-export const cartSubtotal = (items: CartItem[]) => items.reduce((total, item) => total + item.price * item.qty, 0)
+export const cartSubtotal = (items: CartItem[]) =>
+  items.reduce((total, item) => total + item.price * item.qty, 0)
