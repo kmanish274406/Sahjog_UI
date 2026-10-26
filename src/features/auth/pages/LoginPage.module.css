@@ -1,0 +1,260 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(360px, 5fr) 7fr;
+  min-height: 100%;
+}
+
+/* The brand panel is ruled like an accounts ledger: faint horizontal lines and one brass margin rule. */
+.brandPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) 56px;
+  background-color: var(--sidebar-bg);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    rgb(255 255 255 / 4%) 31px,
+    rgb(255 255 255 / 4%) 32px
+  );
+  color: var(--sidebar-text);
+}
+
+.brandPanel::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 28px;
+  width: 1px;
+  background: rgb(232 105 11 / 60%);
+}
+
+.brandTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.brandName {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.tagline {
+  max-width: 420px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.taglineSub {
+  max-width: 400px;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-accent);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.legal {
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+
+.formPanel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  background: var(--color-surface);
+  overflow-y: auto;
+}
+
+.formWrap {
+  width: min(520px, 100%);
+}
+
+.title {
+  font-size: 34px;
+}
+
+.subtitle {
+  margin: var(--space-1) 0 var(--space-6);
+  color: var(--color-text-muted);
+}
+
+.demo {
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.demoTitle {
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.demoNote {
+  margin: var(--space-1) 0 var(--space-3);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.demoList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demoButton {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background-color 0.12s;
+}
+
+.demoButton:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.demoButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.demoName {
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.demoRole {
+  font-size: 11.5px;
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+.demoBlurb {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.demoError {
+  margin-top: var(--space-2);
+  color: var(--color-danger);
+}
+
+@media (max-width: 800px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brandPanel {
+    padding: var(--space-6) var(--space-6) var(--space-6) 52px;
+  }
+
+  .tagline {
+    font-size: 28px;
+  }
+
+  .taglineSub,
+  .legal {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .demoList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.logoCard {
+  display: inline-flex;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.logo {
+  display: block;
+  height: 74px;
+  width: auto;
+}
+
+.tabs {
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+}
+
+.tenant {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.tenant > :first-child {
+  flex: 1;
+}
+
+.switchRow {
+  margin-top: var(--space-4);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.note {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-3);
+}

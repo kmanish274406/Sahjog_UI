@@ -1,0 +1,31 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 140px;
+}
+
+.track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-neutral-soft);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.exceeded {
+  background: var(--color-accent);
+}
+
+.value {
+  width: 40px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: right;
+}

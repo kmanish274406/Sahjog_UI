@@ -1,0 +1,130 @@
+.section {
+  display: grid;
+  grid-template-columns: minmax(180px, 250px) minmax(0, 1fr);
+  gap: var(--space-4) var(--space-10);
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.section:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.section:last-child {
+  padding-bottom: 0;
+}
+
+.head {
+  min-width: 0;
+}
+
+.title {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.description {
+  margin-top: var(--space-1);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  align-content: start;
+}
+
+.fields > .full {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.sticky {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 5;
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 6px 24px rgb(15 27 45 / 12%);
+  backdrop-filter: blur(6px);
+}
+
+.note {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+@media (max-width: 960px) {
+  .section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .fields {
+    grid-template-columns: repeat(min(var(--cols, 2), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buttons {
+    margin-left: 0;
+  }
+}
+
+/* Title above the fields (dialogs, side panels). */
+.stacked {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.stacked .title {
+  font-size: 15px;
+}
+
+.stacked .description {
+  margin-top: 2px;
+}
+
+.stacked:first-child {
+  padding-top: 0;
+}
+
+@media (max-width: 600px) {
+  .sticky {
+    position: static;
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,46 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.subtitle {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.body {
+  flex: 1;
+  padding: var(--space-5);
+  min-width: 0;
+}
+
+.flush {
+  padding: 0;
+}

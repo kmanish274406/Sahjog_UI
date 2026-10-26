@@ -1,0 +1,74 @@
+:root {
+  /* Surfaces & ink: cool paper, deep navy ink */
+  --color-bg: #f3f5f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f8fb;
+  --color-border: #dfe4ed;
+  --color-border-strong: #c3ccdb;
+  --color-text: #141f33;
+  --color-text-muted: #5b6678;
+  --color-text-subtle: #8591a5;
+
+  /* Brand: Sahjog navy + saffron orange */
+  --color-primary: #082c54;
+  --color-primary-hover: #051f3d;
+  --color-primary-soft: #e3edf8;
+  --color-accent: #e8690b;
+  --color-accent-strong: #c25500;
+  --color-accent-soft: #fff0e3;
+
+  /* Status (always paired with a label) */
+  --color-success: #2a7658;
+  --color-success-soft: #e0f1e8;
+  --color-warning: #99620f;
+  --color-warning-soft: #fbefd5;
+  --color-danger: #aa3341;
+  --color-danger-soft: #fbe8ea;
+  --color-info: #2b629a;
+  --color-info-soft: #e1ecf7;
+  --color-neutral-soft: #e9edf3;
+
+  /* Chart categorical order (validated for colour-vision separation) */
+  --chart-1: #1f5ea8;
+  --chart-2: #e8690b;
+  --chart-3: #2a9d8f;
+  --chart-4: #a4457a;
+  --chart-5: #d0663f;
+  --chart-grid: #e6eaf1;
+
+  /* Sidebar */
+  --sidebar-bg: #071f3b;
+  --sidebar-border: rgb(255 255 255 / 8%);
+  --sidebar-text: #a7b4c7;
+  --sidebar-text-strong: #ffffff;
+  --sidebar-hover: rgb(255 255 255 / 6%);
+  --sidebar-active: rgb(255 255 255 / 10%);
+
+  /* Layout */
+  --sidebar-width: 252px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 60px;
+
+  /* Controls share one height so a row of fields, buttons and filters always lines up. */
+  --control-height: 38px;
+  --control-height-sm: 30px;
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --shadow-sm: 0 1px 2px rgb(15 27 45 / 5%), 0 0 0 1px rgb(15 27 45 / 0%);
+  --shadow-md: 0 16px 40px rgb(15 27 45 / 18%);
+  --focus-ring: 0 0 0 3px rgb(8 44 84 / 18%);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}

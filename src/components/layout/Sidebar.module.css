@@ -1,0 +1,245 @@
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  transition:
+    width 0.2s ease,
+    transform 0.2s ease;
+}
+
+.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--topbar-height);
+  padding: 0 var(--space-4) 0 var(--space-5);
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.brand {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.brandName {
+  color: var(--sidebar-text-strong);
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.brandSub {
+  margin-top: 3px;
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.collapseButton {
+  display: inline-flex;
+  padding: 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--sidebar-text);
+  cursor: pointer;
+}
+
+.collapseButton:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text-strong);
+}
+
+.nav {
+  flex: 1;
+  padding: var(--space-3) var(--space-3) var(--space-4);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 15%) transparent;
+}
+
+.group {
+  margin-top: var(--space-4);
+}
+
+.groupTitle {
+  height: 18px;
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-1);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(169 182 200 / 55%);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 38px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  color: var(--sidebar-text);
+  white-space: nowrap;
+}
+
+.link:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text-strong);
+  text-decoration: none;
+}
+
+.active {
+  background: var(--sidebar-active);
+  color: var(--sidebar-text-strong);
+}
+
+.active::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: -12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-accent);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.footerText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.footerName {
+  overflow: hidden;
+  color: var(--sidebar-text-strong);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footerRole {
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+/* Collapsed rail: icons only */
+.collapsed .brand,
+.collapsed .label,
+.collapsed .footerText {
+  display: none;
+}
+
+.collapsed .header {
+  justify-content: center;
+  padding: 0;
+}
+
+.collapsed .collapseButton {
+  display: none;
+}
+
+.collapsed .groupTitle {
+  height: 1px;
+  margin: 0 var(--space-3) var(--space-2);
+  padding: 0;
+  background: var(--sidebar-border);
+  font-size: 0;
+}
+
+.collapsed .link {
+  justify-content: center;
+  padding: 0;
+}
+
+.collapsed .footer {
+  justify-content: center;
+  padding: var(--space-4) 0;
+}
+
+.collapsed .active::before {
+  left: -12px;
+}
+
+@media (max-width: 900px) {
+  .sidebar,
+  .collapsed {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+  }
+
+  .open {
+    transform: translateX(0);
+  }
+
+  /* The rail layout never applies in the mobile drawer. */
+  .collapsed .brand,
+  .collapsed .label,
+  .collapsed .footerText {
+    display: initial;
+  }
+
+  .collapsed .footerText {
+    display: flex;
+  }
+
+  .collapsed .link {
+    justify-content: flex-start;
+    padding: 0 var(--space-3);
+  }
+
+  .collapseButton {
+    display: none;
+  }
+}
