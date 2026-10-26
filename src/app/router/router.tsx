@@ -1,6 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom'
+﻿import { createBrowserRouter } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { PERMISSIONS } from '@/config/permissions'
+import type { PermissionRule } from '@/config/permissions'
 import { ROUTES } from '@/config/routes'
 import type { Role } from '@/features/auth/types/auth.types'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -23,7 +25,7 @@ const TENANT_ROLES: Role[] = ['customer', 'vendor', 'technician', 'admin']
 const PROVIDERS: Role[] = ['vendor', 'technician']
 
 /** Each entry is guarded by the roles that may open its pages; the API checks the same rules. */
-const guarded: { roles: Role[]; routes: RouteObject[] }[] = [
+const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject[] }[] = [
   {
     roles: SIGNED_IN,
     routes: [
@@ -77,27 +79,63 @@ const guarded: { roles: Role[]; routes: RouteObject[] }[] = [
   },
   {
     roles: ['admin'],
+    permission: PERMISSIONS.userView,
+    routes: [page(rel(ROUTES.users), () => import('@/features/admin/pages/UsersPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: [
+      PERMISSIONS.categoryAdd,
+      PERMISSIONS.categoryEdit,
+      PERMISSIONS.serviceAdd,
+      PERMISSIONS.serviceEdit,
+    ],
+    routes: [page(rel(ROUTES.catalog), () => import('@/features/admin/pages/CatalogPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.paymentView,
+    routes: [page(rel(ROUTES.payments), () => import('@/features/admin/pages/PaymentsPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: [PERMISSIONS.contentAdd, PERMISSIONS.contentEdit, PERMISSIONS.contentDelete],
+    routes: [page(rel(ROUTES.content), () => import('@/features/admin/pages/ContentPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.reportView,
+    routes: [page(rel(ROUTES.reports), () => import('@/features/admin/pages/ReportsPage'))],
+  },
+  {
+    roles: ['admin'],
     routes: [
-      page(rel(ROUTES.users), () => import('@/features/admin/pages/UsersPage')),
-      page(rel(ROUTES.catalog), () => import('@/features/admin/pages/CatalogPage')),
-      page(rel(ROUTES.payments), () => import('@/features/admin/pages/PaymentsPage')),
-      page(rel(ROUTES.content), () => import('@/features/admin/pages/ContentPage')),
       page(rel(ROUTES.settings), () => import('@/features/admin/pages/SettingsPage')),
-      page(rel(ROUTES.reports), () => import('@/features/admin/pages/ReportsPage')),
       page(rel(ROUTES.business), () => import('@/features/admin/pages/BusinessPage')),
     ],
   },
   {
     roles: ['super_admin'],
+    permission: PERMISSIONS.clientView,
     routes: [
       page(rel(ROUTES.clients), () => import('@/features/platform/pages/ClientsPage')),
       page(rel(ROUTES.clientDetail), () => import('@/features/platform/pages/ClientDetailPage')),
     ],
   },
+  {
+    roles: ['super_admin'],
+    permission: PERMISSIONS.masterView,
+    routes: [page(rel(ROUTES.masters), () => import('@/features/platform/pages/MastersPage'))],
+  },
+  {
+    roles: ['super_admin'],
+    permission: PERMISSIONS.roleView,
+    routes: [page(rel(ROUTES.roles), () => import('@/features/platform/pages/RolesPage'))],
+  },
 ]
 
-const appRoutes: RouteObject[] = guarded.map(({ roles, routes }) => ({
-  element: <ProtectedRoute allowedRoles={roles} />,
+const appRoutes: RouteObject[] = guarded.map(({ roles, permission, routes }) => ({
+  element: <ProtectedRoute allowedRoles={roles} permission={permission} />,
   children: routes,
 }))
 

@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+﻿import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '@/api'
 import type { ContentDto } from '@/api/types'
@@ -19,6 +19,8 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { PERMISSIONS } from '@/config/permissions'
+import { Can } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 
 const SECTION_LABELS: Record<string, string> = {
@@ -85,19 +87,23 @@ export default function ContentPage() {
       align: 'right',
       render: (c) => (
         <span className={shared.row} style={{ justifyContent: 'flex-end' }}>
-          <Button size="sm" variant="ghost" aria-label="Edit" onClick={() => setEditing(c)}>
-            <Pencil size={15} />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label="Delete"
-            onClick={() => {
-              if (window.confirm('Remove this text from the apps?')) remove.mutate(c.id)
-            }}
-          >
-            <Trash2 size={15} />
-          </Button>
+          <Can permission={PERMISSIONS.contentEdit}>
+            <Button size="sm" variant="ghost" aria-label="Edit" onClick={() => setEditing(c)}>
+              <Pencil size={15} />
+            </Button>
+          </Can>
+          <Can permission={PERMISSIONS.contentDelete}>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="Delete"
+              onClick={() => {
+                if (window.confirm('Remove this text from the apps?')) remove.mutate(c.id)
+              }}
+            >
+              <Trash2 size={15} />
+            </Button>
+          </Can>
         </span>
       ),
     },
@@ -109,9 +115,11 @@ export default function ContentPage() {
         title="App texts & slots"
         description="Everything customers read in the apps comes from here: the greeting, banners, time slots and payment labels."
         actions={
-          <Button onClick={() => setEditing('new')}>
-            <Plus size={16} aria-hidden="true" /> Add text
-          </Button>
+          <Can permission={PERMISSIONS.contentAdd}>
+            <Button onClick={() => setEditing('new')}>
+              <Plus size={16} aria-hidden="true" /> Add text
+            </Button>
+          </Can>
         }
       />
       <Toolbar>

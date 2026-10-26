@@ -1,4 +1,4 @@
-import { Pencil, Plus } from 'lucide-react'
+﻿import { Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '@/api'
 import { assetUrl } from '@/api/http'
@@ -22,6 +22,8 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { PERMISSIONS } from '@/config/permissions'
+import { Can } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency, formatPercent } from '@/utils/format'
 
@@ -86,14 +88,16 @@ export default function CatalogPage() {
       header: '',
       align: 'right',
       render: (s) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label={`Edit ${s.name}`}
-          onClick={() => setEditingService(s)}
-        >
-          <Pencil size={15} />
-        </Button>
+        <Can permission={PERMISSIONS.serviceEdit}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={`Edit ${s.name}`}
+            onClick={() => setEditingService(s)}
+          >
+            <Pencil size={15} />
+          </Button>
+        </Can>
       ),
     },
   ]
@@ -140,14 +144,16 @@ export default function CatalogPage() {
       header: '',
       align: 'right',
       render: (c) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label={`Edit ${c.name}`}
-          onClick={() => setEditingCategory(c)}
-        >
-          <Pencil size={15} />
-        </Button>
+        <Can permission={PERMISSIONS.categoryEdit}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={`Edit ${c.name}`}
+            onClick={() => setEditingCategory(c)}
+          >
+            <Pencil size={15} />
+          </Button>
+        </Can>
       ),
     },
   ]
@@ -163,13 +169,17 @@ export default function CatalogPage() {
         description="What customers can book. Switch an item off to hide it from the app."
         actions={
           tab === 'services' ? (
-            <Button onClick={() => setEditingService('new')}>
-              <Plus size={16} aria-hidden="true" /> Add service
-            </Button>
+            <Can permission={PERMISSIONS.serviceAdd}>
+              <Button onClick={() => setEditingService('new')}>
+                <Plus size={16} aria-hidden="true" /> Add service
+              </Button>
+            </Can>
           ) : (
-            <Button onClick={() => setEditingCategory('new')}>
-              <Plus size={16} aria-hidden="true" /> Add category
-            </Button>
+            <Can permission={PERMISSIONS.categoryAdd}>
+              <Button onClick={() => setEditingCategory('new')}>
+                <Plus size={16} aria-hidden="true" /> Add category
+              </Button>
+            </Can>
           )
         }
       />
@@ -259,7 +269,7 @@ function ServiceForm({
   const [categoryId, setCategoryId] = useState(String(s?.categoryId ?? ''))
   const [name, setName] = useState(s?.name ?? '')
   const [short, setShort] = useState(s?.short ?? '')
-  const [emoji, setEmoji] = useState(s?.emoji ?? '🛠️')
+  const [emoji, setEmoji] = useState(s?.emoji ?? 'ðŸ› ï¸')
   const [basePrice, setBasePrice] = useState(String(s?.basePrice ?? ''))
   const [commission, setCommission] = useState(String(s?.commission ?? ''))
   const [active, setActive] = useState(s?.active ?? true)
@@ -317,7 +327,7 @@ function ServiceForm({
       />
       <div className={shared.formGrid}>
         <Input
-          label="Base price (₹)"
+          label="Base price (â‚¹)"
           required
           type="number"
           min={1}

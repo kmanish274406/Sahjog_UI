@@ -12,8 +12,15 @@ import type {
   CustomerVerifyRequest,
   EarningsDto,
   EmailAuthRequest,
+  FeatureDefDto,
   Features,
+  MastersDto,
   NoticeListDto,
+  PaymentMethodDefDto,
+  PlanTemplateDto,
+  SaveFeatureDefRequest,
+  SavePaymentMethodDefRequest,
+  SavePlanTemplateRequest,
   OtpResult,
   PaymentOrderDto,
   PaymentRowDto,
@@ -26,6 +33,7 @@ import type {
   ProfileDto,
   ProviderDto,
   ReportDto,
+  RoleAccessDto,
   SaveAddressRequest,
   SaveCategoryRequest,
   SaveContentRequest,
@@ -57,6 +65,7 @@ const del = (path: string) => request<boolean>(path, { method: 'DELETE' })
  */
 export const api = {
   auth: {
+    access: () => request<string[]>('/api/auth/access'),
     customerSendOtp: (phone: string) =>
       request<OtpResult>('/api/auth/customer/send-otp', {
         method: 'POST',
@@ -238,11 +247,32 @@ export const api = {
   },
 
   platform: {
+    access: () => request<string[]>('/api/platform/access'),
+    adminRole: () => request<RoleAccessDto>('/api/platform/roles/admin'),
+    saveAdminRole: (accessIds: string[]) =>
+      put<RoleAccessDto>('/api/platform/roles/admin', { accessIds }),
     tenants: () => request<TenantInfoDto[]>('/api/platform/tenants'),
     createTenant: (r: CreateTenantRequest) => post<TenantCreatedDto>('/api/platform/tenants', r),
     setTenantActive: (id: number, active: boolean) =>
       put<TenantInfoDto>(`/api/platform/tenants/${id}/active`, { active }),
     setFeatures: (id: number, features: Partial<Features>) =>
       put<Features>(`/api/platform/tenants/${id}/features`, features),
+    masters: () => request<MastersDto>('/api/platform/masters'),
+    addFeature: (r: SaveFeatureDefRequest) =>
+      post<FeatureDefDto>('/api/platform/masters/features', r),
+    updateFeature: (code: string, r: SaveFeatureDefRequest) =>
+      put<FeatureDefDto>(`/api/platform/masters/features/${encodeURIComponent(code)}`, r),
+    addPaymentMethod: (r: SavePaymentMethodDefRequest) =>
+      post<PaymentMethodDefDto>('/api/platform/masters/payment-methods', r),
+    updatePaymentMethod: (code: string, r: SavePaymentMethodDefRequest) =>
+      put<PaymentMethodDefDto>(
+        `/api/platform/masters/payment-methods/${encodeURIComponent(code)}`,
+        r,
+      ),
+    addPlanTemplate: (r: SavePlanTemplateRequest) =>
+      post<PlanTemplateDto>('/api/platform/masters/plans', r),
+    updatePlanTemplate: (id: number, r: SavePlanTemplateRequest) =>
+      put<PlanTemplateDto>(`/api/platform/masters/plans/${id}`, r),
+    deletePlanTemplate: (id: number) => del(`/api/platform/masters/plans/${id}`),
   },
 }

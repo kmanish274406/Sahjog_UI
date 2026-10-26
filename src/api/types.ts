@@ -9,11 +9,62 @@ export interface ApiEnvelope<T> {
 
 // ---------------------------------------------------------------- tenants and the platform owner
 
-export interface Features {
-  wallet: boolean
-  coupon: boolean
-  googleLogin: boolean
+/** Feature code to on/off. The codes come from the feature master (wallet, coupon, googleLogin, paymentMethods, subscriptions, ...). */
+export type Features = Record<string, boolean>
+
+export interface FeatureDefDto {
+  code: string
+  name: string
+  description: string
+  sortOrder: number
+  active: boolean
 }
+
+export interface PaymentMethodDefDto {
+  code: string
+  name: string
+  sortOrder: number
+  active: boolean
+  featureCode: string | null
+}
+
+export interface PlanTemplateDto {
+  id: number
+  kind: string
+  name: string
+  period: string
+  months: number
+  price: number
+  save: string
+  sortOrder: number
+  active: boolean
+}
+
+export interface AccessPermissionDto {
+  accessId: string
+  module: string
+  resource: string
+  action: string
+  label: string
+  sortOrder: number
+  platformOnly: boolean
+}
+
+/** The access ids an Admin can be given, and the ones the Admin role holds now. */
+export interface RoleAccessDto {
+  catalog: AccessPermissionDto[]
+  accessIds: string[]
+}
+
+export interface MastersDto {
+  features: FeatureDefDto[]
+  paymentMethods: PaymentMethodDefDto[]
+  planTemplates: PlanTemplateDto[]
+}
+
+export type SaveFeatureDefRequest = Partial<Omit<FeatureDefDto, 'active'>> & { active?: boolean }
+export type SavePaymentMethodDefRequest = Partial<PaymentMethodDefDto>
+export type SavePlanTemplateRequest = Partial<Omit<PlanTemplateDto, 'id'>>
 
 export interface TenantDto {
   id: number
@@ -29,6 +80,8 @@ export interface TenantInfoDto extends TenantDto {
   adminEmail: string
   createdAt: string
   features: Features
+  /** Names of the switches, sent on the admin's own business record. */
+  featureDefs?: FeatureDefDto[] | null
 }
 
 export interface CreateTenantRequest {
@@ -217,6 +270,8 @@ export interface SettingsDto {
   defaultCommission: number
   cancelPercents: number[]
   paymentMethods: Record<string, boolean>
+  /** Payment method code to the name the master gives it. */
+  paymentMethodLabels?: Record<string, string>
   onlinePayments: boolean
   paymentProvider: string
   couponCode: string

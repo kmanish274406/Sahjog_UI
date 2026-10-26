@@ -1,8 +1,9 @@
-import clsx from 'clsx'
+﻿import clsx from 'clsx'
 import { ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { Avatar } from '@/components/ui'
 import { env } from '@/config/env'
+import { usePermission } from '@/hooks/usePermission'
 import { NAV_BY_ROLE } from '@/config/navigation'
 import { ROUTES } from '@/config/routes'
 import { ROLE_LABELS } from '@/domain/constants'
@@ -17,7 +18,14 @@ export function Sidebar() {
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const setMobileOpen = useUiStore((state) => state.setMobileSidebarOpen)
 
-  const groups = user ? NAV_BY_ROLE[user.role] : []
+  const can = usePermission()
+
+  const groups = (user ? NAV_BY_ROLE[user.role] : [])
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.permission || can(item.permission)),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
     <aside

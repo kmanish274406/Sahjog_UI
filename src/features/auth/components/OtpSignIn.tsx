@@ -75,7 +75,8 @@ export function OtpSignIn({
           </Alert>
           {askName && (
             <Input
-              label="Your name"
+              label="Full name"
+              placeholder="e.g. Anita Sharma"
               hint="Only needed the first time you sign in."
               autoComplete="name"
               value={name}
@@ -83,8 +84,9 @@ export function OtpSignIn({
             />
           )}
           <Input
-            label="OTP"
+            label="Verification code"
             required
+            placeholder="6-digit OTP"
             inputMode="numeric"
             maxLength={6}
             autoComplete="one-time-code"

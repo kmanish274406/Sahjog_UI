@@ -27,3 +27,52 @@
   font-weight: 600;
   border-bottom-color: var(--color-accent);
 }
+
+/* Pill switch: the options split the width, the active one is a raised white chip. */
+.segmented {
+  gap: 2px;
+  padding: 4px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-soft);
+  overflow-x: visible;
+}
+
+.segmented .tab {
+  flex: 1 1 0;
+  padding: 8px 6px;
+  margin-bottom: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  transition:
+    background-color 0.12s,
+    color 0.12s,
+    box-shadow 0.12s;
+}
+
+.segmented .tab:hover:not(.active) {
+  background: rgb(255 255 255 / 55%);
+}
+
+.segmented .tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.segmented .active {
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgb(15 27 45 / 12%),
+    0 0 0 1px rgb(15 27 45 / 4%);
+}
+
+@media (max-width: 520px) {
+  .segmented {
+    flex-wrap: wrap;
+  }
+
+  .segmented .tab {
+    flex: 1 1 30%;
+  }
+}

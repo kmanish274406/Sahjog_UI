@@ -43,16 +43,17 @@ export default function BusinessPage() {
               subtitle="Set by the platform owner. A switched-off feature is hidden in the apps and refused by the server."
             >
               <ul className={shared.list}>
-                {[
-                  { label: 'Sahjog wallet', on: t.features.wallet },
-                  { label: 'Coupons', on: t.features.coupon },
-                  { label: 'Sign in with Google', on: t.features.googleLogin },
-                ].map((f) => (
-                  <li key={f.label} className={shared.spread}>
-                    <span>{f.label}</span>
-                    <Badge tone={f.on ? 'success' : 'neutral'}>{f.on ? 'On' : 'Off'}</Badge>
-                  </li>
-                ))}
+                {(t.featureDefs ?? [])
+                  .map((def) => ({
+                    label: def.name,
+                    on: t.features[def.code] ?? true,
+                  }))
+                  .map((f) => (
+                    <li key={f.label} className={shared.spread}>
+                      <span>{f.label}</span>
+                      <Badge tone={f.on ? 'success' : 'neutral'}>{f.on ? 'On' : 'Off'}</Badge>
+                    </li>
+                  ))}
               </ul>
             </Panel>
           </>

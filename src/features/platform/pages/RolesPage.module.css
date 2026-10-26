@@ -1,0 +1,70 @@
+.wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.table thead th {
+  background: var(--color-surface-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.screen {
+  min-width: 220px;
+  text-align: left !important;
+}
+
+.action {
+  min-width: 88px;
+}
+
+.group td {
+  background: var(--color-primary-soft);
+  text-align: left;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.toggle input,
+.action input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.count {
+  margin-left: var(--space-2);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.na {
+  color: var(--color-text-subtle);
+}
+
+.empty {
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+}

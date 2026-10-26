@@ -17,6 +17,8 @@ import {
 } from '@/components/ui'
 import type { BadgeProps, Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { PERMISSIONS } from '@/config/permissions'
+import { Can } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency, formatDateTime } from '@/utils/format'
 
@@ -83,9 +85,11 @@ export default function PaymentsPage() {
       align: 'right',
       render: (p) =>
         (p.status === 'Paid' || p.status === 'Used') && p.refunded < p.amount ? (
-          <Button size="sm" variant="secondary" onClick={() => setRefunding(p)}>
-            Refund
-          </Button>
+          <Can permission={PERMISSIONS.paymentRefund}>
+            <Button size="sm" variant="secondary" onClick={() => setRefunding(p)}>
+              Refund
+            </Button>
+          </Can>
         ) : null,
     },
   ]
@@ -148,7 +152,7 @@ function RefundForm({ payment, onDone }: { payment: PaymentRowDto; onDone: () =>
         <strong>{formatCurrency(left)}</strong> can still be refunded.
       </p>
       <Input
-        label="Amount to refund (₹)"
+        label="Amount to refund (â‚¹)"
         type="number"
         min={1}
         max={left}

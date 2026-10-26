@@ -26,6 +26,8 @@ export const ROUTES = {
   // Platform owner
   clients: '/clients',
   clientDetail: '/clients/:tenantId',
+  masters: '/masters',
+  roles: '/roles',
   // Everyone
   notifications: '/notifications',
   profile: '/profile',

@@ -43,6 +43,7 @@ export function EmailSignIn<TResult>({
         label={emailLabel}
         required
         type="email"
+        placeholder="you@example.com"
         autoComplete="username"
         error={errors.email?.message}
         {...register('email')}
@@ -51,6 +52,7 @@ export function EmailSignIn<TResult>({
         label="Password"
         required
         type="password"
+        placeholder="Enter your password"
         autoComplete="current-password"
         error={errors.password?.message}
         {...register('password')}
@@ -100,6 +102,7 @@ export function PhoneSignIn<TResult>({ signIn, onSignedIn, defaults }: PhoneSign
       <Input
         label="Mobile number"
         required
+        placeholder="98765 43210"
         type="tel"
         inputMode="numeric"
         autoComplete="tel"
@@ -110,6 +113,7 @@ export function PhoneSignIn<TResult>({ signIn, onSignedIn, defaults }: PhoneSign
         label="Password"
         required
         type="password"
+        placeholder="Enter your password"
         autoComplete="current-password"
         error={errors.password?.message}
         {...register('password')}

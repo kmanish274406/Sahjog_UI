@@ -11,11 +11,23 @@ export interface TabsProps<TId extends string> {
   active: TId
   onChange: (id: TId) => void
   label?: string
+  /** `segmented` renders a pill switch whose options share the width equally. */
+  variant?: 'underline' | 'segmented'
 }
 
-export function Tabs<TId extends string>({ items, active, onChange, label }: TabsProps<TId>) {
+export function Tabs<TId extends string>({
+  items,
+  active,
+  onChange,
+  label,
+  variant = 'underline',
+}: TabsProps<TId>) {
   return (
-    <div className={styles.tabs} role="tablist" aria-label={label}>
+    <div
+      className={clsx(styles.tabs, variant === 'segmented' && styles.segmented)}
+      role="tablist"
+      aria-label={label}
+    >
       {items.map((item) => (
         <button
           key={item.id}

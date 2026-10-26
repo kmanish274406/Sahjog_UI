@@ -3,15 +3,42 @@ import { api } from '@/api'
 import type { PlanDto, SettingsDto } from '@/api/types'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Alert, Button, Input, Panel, Toggle } from '@/components/ui'
+import { Alert, Button, Input, Panel, Tabs, Toggle } from '@/components/ui'
+import { PERMISSIONS } from '@/config/permissions'
 import { CANCEL_STAGE_LABELS } from '@/domain/constants'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { usePermission } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
+
+type SettingsTab = 'fees' | 'cancellation' | 'payments' | 'coupon' | 'plans'
+
+const TABS: { id: SettingsTab; label: string }[] = [
+  { id: 'fees', label: 'Fees & commission' },
+  { id: 'cancellation', label: 'Cancellation' },
+  { id: 'payments', label: 'Payment methods' },
+  { id: 'coupon', label: 'Coupon' },
+  { id: 'plans', label: 'Subscriptions' },
+]
 
 export default function SettingsPage() {
   // Admin edits the live settings, so they are read fresh rather than from the customers' cached copy.
   const settings = useApiQuery(['admin', 'settings'], api.catalog.settings, { staleTime: 0 })
   const plans = useApiQuery(['admin', 'plans'], () => api.catalog.plans(), { staleTime: 0 })
+  const [tab, setTab] = useState<SettingsTab>('fees')
+
+  // The platform owner decides which of these the business's admin gets.
+  const features = settings.data?.features
+  // A tab also needs the person's own permission, on top of the owner's switch for the business.
+  const can = usePermission()
+  const allowed: Record<SettingsTab, boolean> = {
+    fees: can(PERMISSIONS.feesEdit),
+    cancellation: can(PERMISSIONS.feesEdit),
+    payments: can(PERMISSIONS.paymentMethodEdit) && (features?.paymentMethods ?? false),
+    coupon: can(PERMISSIONS.couponEdit) && (features?.coupon ?? false),
+    plans: can(PERMISSIONS.planEdit) && (features?.subscriptions ?? false),
+  }
+  const tabs = TABS.filter((t) => allowed[t.id])
+  const current = allowed[tab] ? tab : 'fees'
 
   return (
     <div className={shared.stack}>
@@ -23,15 +50,33 @@ export default function SettingsPage() {
         isLoading={settings.isLoading || plans.isLoading}
         error={settings.error ?? plans.error}
       >
+        <Tabs items={tabs} active={current} onChange={setTab} label="Settings" />
+        {/* Every form stays mounted so unsaved edits survive a switch of tab. */}
         {settings.data && (
           <>
-            <FeesForm settings={settings.data} />
-            <CancellationForm settings={settings.data} />
-            <PaymentMethodsForm settings={settings.data} />
-            {settings.data.features.coupon && <CouponForm settings={settings.data} />}
+            <div hidden={current !== 'fees'}>
+              <FeesForm settings={settings.data} />
+            </div>
+            <div hidden={current !== 'cancellation'}>
+              <CancellationForm settings={settings.data} />
+            </div>
+            {allowed.payments && (
+              <div hidden={current !== 'payments'}>
+                <PaymentMethodsForm settings={settings.data} />
+              </div>
+            )}
+            {allowed.coupon && (
+              <div hidden={current !== 'coupon'}>
+                <CouponForm settings={settings.data} />
+              </div>
+            )}
           </>
         )}
-        {plans.data && <PlansForm plans={plans.data} />}
+        {plans.data && allowed.plans && (
+          <div hidden={current !== 'plans'}>
+            <PlansForm plans={plans.data} />
+          </div>
+        )}
       </QueryState>
     </div>
   )
@@ -80,7 +125,7 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
       >
         <div className={shared.formGrid}>
           <Input
-            label="Platform fee per booking (₹)"
+            label="Platform fee per booking (â‚¹)"
             type="number"
             min={0}
             step="1"
@@ -152,14 +197,6 @@ function CancellationForm({ settings }: { settings: SettingsDto }) {
   )
 }
 
-const METHOD_LABELS: Record<string, string> = {
-  UPI: 'UPI',
-  QR: 'Scan a UPI QR code',
-  Card: 'Credit / debit card',
-  'Net Banking': 'Net banking',
-  Wallet: 'Sahjog wallet',
-}
-
 function PaymentMethodsForm({ settings }: { settings: SettingsDto }) {
   const [methods, setMethods] = useState(settings.paymentMethods)
   const save = useApiMutation(() => api.admin.updateSettings({ paymentMethods: methods }), {
@@ -180,7 +217,7 @@ function PaymentMethodsForm({ settings }: { settings: SettingsDto }) {
           {Object.keys(methods).map((name) => (
             <Toggle
               key={name}
-              label={METHOD_LABELS[name] ?? name}
+              label={settings.paymentMethodLabels?.[name] ?? name}
               checked={methods[name] === true}
               onChange={(on) => setMethods({ ...methods, [name]: on })}
             />
@@ -224,7 +261,7 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
             maxLength={30}
           />
           <Input
-            label="Discount (₹)"
+            label="Discount (â‚¹)"
             type="number"
             min={0}
             step="1"

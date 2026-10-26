@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { api } from '@/api'
 import type { AuthResult } from '@/api/types'
-import { Button, Checkbox, Input } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
 import { useApiMutation } from '@/hooks/useApi'
 import { emailLoginSchema } from '../schemas/login.schema'
 import type { EmailLoginValues } from '../schemas/login.schema'
@@ -31,16 +31,19 @@ export function CustomerEmailSignIn({ onSignedIn }: { onSignedIn: (result: AuthR
       onSubmit={handleSubmit((values) => login.mutate(values))}
       noValidate
     >
-      <Checkbox
-        label="I am new here: create my account"
-        checked={signUp}
-        onChange={(event) => setSignUp(event.target.checked)}
-      />
-      {signUp && <Input label="Your name" autoComplete="name" {...register('name')} />}
+      {signUp && (
+        <Input
+          label="Full name"
+          placeholder="e.g. Anita Sharma"
+          autoComplete="name"
+          {...register('name')}
+        />
+      )}
       <Input
-        label="Email"
+        label="Email address"
         required
         type="email"
+        placeholder="you@example.com"
         autoComplete="username"
         error={errors.email?.message}
         {...register('email')}
@@ -49,6 +52,7 @@ export function CustomerEmailSignIn({ onSignedIn }: { onSignedIn: (result: AuthR
         label="Password"
         required
         type="password"
+        placeholder={signUp ? 'Choose a password' : 'Enter your password'}
         autoComplete={signUp ? 'new-password' : 'current-password'}
         error={errors.password?.message}
         {...register('password')}
@@ -61,6 +65,12 @@ export function CustomerEmailSignIn({ onSignedIn }: { onSignedIn: (result: AuthR
       <Button type="submit" loading={login.isPending}>
         {signUp ? 'Create account' : 'Sign in'}
       </Button>
+      <p className={styles.switch}>
+        {signUp ? 'Already have an account? ' : 'New to Sahjog? '}
+        <Button variant="ghost" size="sm" onClick={() => setSignUp(!signUp)}>
+          {signUp ? 'Sign in' : 'Create an account'}
+        </Button>
+      </p>
     </form>
   )
 }

@@ -15,18 +15,26 @@ import {
   Checkbox,
   DataTable,
   DescriptionList,
+  FormActions,
+  FormSection,
   Input,
   Modal,
   Panel,
   SearchInput,
   StatCard,
+  Tabs,
+  fullRow,
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
+import { PERMISSIONS } from '@/config/permissions'
 import { clientPath } from '@/config/routes'
+import { Can } from '@/hooks/usePermission'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { isEmail, normalisePhone } from '@/domain/validators'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
+
+type StatusFilter = 'all' | 'active' | 'off'
 
 export default function ClientsPage() {
   const tenants = useApiQuery(['platform', 'tenants'], api.platform.tenants)
@@ -34,25 +42,43 @@ export default function ClientsPage() {
   const [creating, setCreating] = useState(false)
   const [created, setCreated] = useState<TenantCreatedDto | null>(null)
 
-  const all = tenants.data ?? []
-  const rows = all.filter((t) =>
-    `${t.name} ${t.code} ${t.ownerName} ${t.ownerEmail}`
-      .toLowerCase()
-      .includes(term.trim().toLowerCase()),
+  const [status, setStatus] = useState<StatusFilter>('all')
+
+  const setActive = useApiMutation(
+    (v: { id: number; active: boolean }) => api.platform.setTenantActive(v.id, v.active),
+    { meta: { success: 'Client updated.' } },
   )
+
+  const all = tenants.data ?? []
+  const activeCount = all.filter((t) => t.isActive).length
+  const rows = all
+    .filter((t) => status === 'all' || (status === 'active') === t.isActive)
+    .filter((t) =>
+      `${t.name} ${t.code} ${t.ownerName} ${t.ownerEmail}`
+        .toLowerCase()
+        .includes(term.trim().toLowerCase()),
+    )
+  const statusTabs: { id: StatusFilter; label: string }[] = [
+    { id: 'all', label: `All (${all.length})` },
+    { id: 'active', label: `Active (${activeCount})` },
+    { id: 'off', label: `Switched off (${all.length - activeCount})` },
+  ]
 
   const columns: Column<TenantInfoDto>[] = [
     {
       key: 'name',
       header: 'Client',
-      minWidth: 180,
+      minWidth: 200,
       render: (t) => (
-        <Link to={clientPath(t.id)}>
-          <strong>{t.name}</strong>
-        </Link>
+        <span>
+          <Link to={clientPath(t.id)}>
+            <strong>{t.name}</strong>
+          </Link>
+          <br />
+          <span className={`${shared.mono} ${shared.muted} ${shared.small}`}>{t.code}</span>
+        </span>
       ),
     },
-    { key: 'code', header: 'Code', render: (t) => <span className={shared.mono}>{t.code}</span> },
     {
       key: 'owner',
       header: 'Owner',
@@ -70,6 +96,18 @@ export default function ClientsPage() {
       render: (t) => <span className={shared.mono}>{t.adminEmail}</span>,
     },
     {
+      key: 'features',
+      header: 'Features',
+      render: (t) => {
+        const on = Object.values(t.features).filter(Boolean).length
+        return (
+          <span className={shared.nowrap}>
+            {on} of {Object.keys(t.features).length} on
+          </span>
+        )
+      },
+    },
+    {
       key: 'created',
       header: 'Created',
       render: (t) => <span className={shared.nowrap}>{formatDate(t.createdAt)}</span>,
@@ -81,6 +119,38 @@ export default function ClientsPage() {
         <Badge tone={t.isActive ? 'success' : 'danger'}>{t.isActive ? 'Active' : 'Off'}</Badge>
       ),
     },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (t) => (
+        <span className={shared.row}>
+          <Can permission={PERMISSIONS.clientView}>
+            <Link to={clientPath(t.id)}>
+              <Button variant="secondary" size="sm">
+                Manage
+              </Button>
+            </Link>
+          </Can>
+          <Can permission={PERMISSIONS.clientActivate}>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={setActive.isPending}
+              onClick={() => {
+                if (
+                  !t.isActive ||
+                  window.confirm(`Switch off ${t.name}? Everyone in it loses access immediately.`)
+                )
+                  setActive.mutate({ id: t.id, active: !t.isActive })
+              }}
+            >
+              {t.isActive ? 'Switch off' : 'Switch on'}
+            </Button>
+          </Can>
+        </span>
+      ),
+    },
   ]
 
   return (
@@ -89,17 +159,20 @@ export default function ClientsPage() {
         title="Clients"
         description="Each client is one business with its own catalogue, plans, fees and admin. Share the business code and admin login with the client."
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} aria-hidden="true" /> New client
-          </Button>
+          <Can permission={PERMISSIONS.clientAdd}>
+            <Button onClick={() => setCreating(true)}>
+              <Plus size={16} aria-hidden="true" /> New client
+            </Button>
+          </Can>
         }
       />
       <QueryState isLoading={tenants.isLoading} error={tenants.error}>
-        <Grid variant="stats">
+        <Grid variant="three">
           <StatCard label="Clients" value={String(all.length)} icon={Landmark} />
-          <StatCard label="Active" value={String(all.filter((t) => t.isActive).length)} />
-          <StatCard label="Switched off" value={String(all.filter((t) => !t.isActive).length)} />
+          <StatCard label="Active" value={String(activeCount)} />
+          <StatCard label="Switched off" value={String(all.length - activeCount)} />
         </Grid>
+        <Tabs items={statusTabs} active={status} onChange={setStatus} label="Filter by status" />
         <Toolbar>
           <SearchInput
             label="Search clients"
@@ -128,7 +201,7 @@ export default function ClientsPage() {
         </Panel>
       </QueryState>
 
-      <Modal open={creating} title="New client" onClose={() => setCreating(false)} wide>
+      <Modal open={creating} title="New client" onClose={() => setCreating(false)}>
         {creating && <CreateForm onDone={() => setCreating(false)} onCreated={setCreated} />}
       </Modal>
       <Modal open={created !== null} title="Client created" onClose={() => setCreated(null)}>
@@ -215,16 +288,16 @@ function CreateForm({
 
   return (
     <form
-      className={shared.stackTight}
       onSubmit={(e) => {
         e.preventDefault()
         create.mutate(undefined)
       }}
     >
-      <div className={shared.formGrid}>
+      <FormSection stacked title="Business">
         <Input
           label="Business name"
           required
+          placeholder="e.g. Sharma Home Services"
           value={form.name}
           onChange={set('name')}
           maxLength={80}
@@ -232,51 +305,66 @@ function CreateForm({
         <Input
           label="Business code"
           required
-          hint="Letters, numbers and dashes. The admin signs in as admin@code.in."
+          placeholder="e.g. sharma-home"
+          hint={`Admin signs in as admin@${form.code.trim().toLowerCase() || 'code'}.in`}
           value={form.code}
           onChange={set('code')}
           maxLength={30}
         />
-        <Input label="Owner name" required value={form.ownerName} onChange={set('ownerName')} />
+      </FormSection>
+      <FormSection stacked title="Owner">
         <Input
-          label="Owner email"
+          label="Owner name"
           required
-          type="email"
-          hint="One business per owner."
-          value={form.ownerEmail}
-          onChange={set('ownerEmail')}
+          placeholder="Full name"
+          value={form.ownerName}
+          onChange={set('ownerName')}
         />
         <Input
           label="Owner mobile"
           required
           type="tel"
           inputMode="numeric"
+          placeholder="98765 43210"
           value={form.ownerPhone}
           onChange={set('ownerPhone')}
         />
         <Input
+          className={fullRow}
+          label="Owner email"
+          required
+          type="email"
+          placeholder="owner@example.com"
+          value={form.ownerEmail}
+          onChange={set('ownerEmail')}
+        />
+      </FormSection>
+      <FormSection stacked title="Setup">
+        <Input
+          className={fullRow}
           label="Admin password"
           type="password"
           autoComplete="new-password"
-          hint="Leave empty to use the default."
+          placeholder="Leave empty to use the default"
           value={form.adminPassword}
           onChange={set('adminPassword')}
         />
-      </div>
-      <Checkbox
-        label="Fill with sample vendors, technicians and bookings (for demos)"
-        checked={demoData}
-        onChange={(e) => setDemoData(e.target.checked)}
-      />
+        <Checkbox
+          className={fullRow}
+          label="Fill with sample vendors, technicians and bookings (for demos)"
+          checked={demoData}
+          onChange={(e) => setDemoData(e.target.checked)}
+        />
+      </FormSection>
       {create.isError && <Alert tone="danger">{create.error.message}</Alert>}
-      <div className={shared.formActions}>
+      <FormActions note="Fields marked * are required.">
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
         <Button type="submit" loading={create.isPending} disabled={!valid}>
           Create client
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

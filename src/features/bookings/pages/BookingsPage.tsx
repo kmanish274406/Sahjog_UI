@@ -55,7 +55,7 @@ export default function BookingsPage() {
     {
       key: 'service',
       header: 'Service',
-      minWidth: 150,
+      minWidth: 190,
       render: (b) => (
         <span>
           <span aria-hidden="true">{b.emoji}</span> {b.service}
@@ -93,7 +93,9 @@ export default function BookingsPage() {
       header: 'When',
       render: (b) => (
         <span className={shared.nowrap}>
-          {formatDate(b.date)}, {b.time}
+          {formatDate(b.date)}
+          <br />
+          <span className={` ${shared.small}`}>{b.time}</span>
         </span>
       ),
     },
@@ -144,7 +146,7 @@ export default function BookingsPage() {
             )}
           <Link to={bookingPath(b.id)}>
             <Button size="sm" variant="secondary">
-              Details
+              View
             </Button>
           </Link>
         </span>
@@ -171,17 +173,17 @@ export default function BookingsPage() {
           ) : undefined
         }
       />
-      <Toolbar>
-        <Tabs items={tabs} active={current.id} onChange={setView} label="Show" />
-        <SearchInput
-          label="Search bookings"
-          placeholder="Search by booking, service or name"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-        />
-      </Toolbar>
+      <Tabs items={tabs} active={current.id} onChange={setView} label="Show" />
       <QueryState isLoading={bookings.isLoading} error={bookings.error}>
         <Panel flush>
+          <Toolbar>
+            <SearchInput
+              label="Search bookings"
+              placeholder="Search by booking, service or name"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+            />
+          </Toolbar>
           {rows.length === 0 ? (
             <EmptyState icon={CalendarX} title="Nothing here">
               {term

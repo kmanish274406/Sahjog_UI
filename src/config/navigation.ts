@@ -1,4 +1,4 @@
-import {
+﻿import {
   Bell,
   Building2,
   CalendarCheck,
@@ -8,11 +8,13 @@ import {
   Grid2x2,
   Landmark,
   LayoutDashboard,
+  ListChecks,
   MapPin,
   Package,
   PieChart,
   Receipt,
   Settings,
+  ShieldCheck,
   ShoppingCart,
   Store,
   Users,
@@ -22,12 +24,16 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Role } from '@/features/auth/types/auth.types'
+import { PERMISSIONS } from './permissions'
+import type { PermissionRule } from './permissions'
 import { ROUTES } from './routes'
 
 export interface NavItem {
   label: string
   to: string
   icon: LucideIcon
+  /** Shown only to a role that holds this permission. */
+  permission?: PermissionRule
 }
 
 export interface NavGroup {
@@ -100,21 +106,54 @@ export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
   admin: [
     {
       title: 'Overview',
-      items: [dashboard, { label: 'Reports', to: ROUTES.reports, icon: PieChart }],
+      items: [
+        dashboard,
+        {
+          label: 'Reports',
+          to: ROUTES.reports,
+          icon: PieChart,
+          permission: PERMISSIONS.reportView,
+        },
+      ],
     },
     {
       title: 'Operations',
       items: [
         { label: 'Bookings', to: ROUTES.bookings, icon: ClipboardList },
-        { label: 'Vendors & technicians', to: ROUTES.users, icon: Users },
-        { label: 'Payments & refunds', to: ROUTES.payments, icon: Receipt },
+        {
+          label: 'Vendors & technicians',
+          to: ROUTES.users,
+          icon: Users,
+          permission: PERMISSIONS.userView,
+        },
+        {
+          label: 'Payments & refunds',
+          to: ROUTES.payments,
+          icon: Receipt,
+          permission: PERMISSIONS.paymentView,
+        },
       ],
     },
     {
       title: 'Configuration',
       items: [
-        { label: 'Categories & services', to: ROUTES.catalog, icon: Grid2x2 },
-        { label: 'App texts & slots', to: ROUTES.content, icon: FileText },
+        {
+          label: 'Categories & services',
+          to: ROUTES.catalog,
+          icon: Grid2x2,
+          permission: [
+            PERMISSIONS.categoryAdd,
+            PERMISSIONS.categoryEdit,
+            PERMISSIONS.serviceAdd,
+            PERMISSIONS.serviceEdit,
+          ],
+        },
+        {
+          label: 'App texts & slots',
+          to: ROUTES.content,
+          icon: FileText,
+          permission: [PERMISSIONS.contentAdd, PERMISSIONS.contentEdit, PERMISSIONS.contentDelete],
+        },
         { label: 'Fees & policies', to: ROUTES.settings, icon: Settings },
         { label: 'My business', to: ROUTES.business, icon: Building2 },
         notifications,
@@ -124,7 +163,26 @@ export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
   super_admin: [
     {
       title: 'Platform',
-      items: [{ label: 'Clients', to: ROUTES.clients, icon: Landmark }],
+      items: [
+        {
+          label: 'Clients',
+          to: ROUTES.clients,
+          icon: Landmark,
+          permission: PERMISSIONS.clientView,
+        },
+        {
+          label: 'Masters',
+          to: ROUTES.masters,
+          icon: ListChecks,
+          permission: PERMISSIONS.masterView,
+        },
+        {
+          label: 'Roles & access',
+          to: ROUTES.roles,
+          icon: ShieldCheck,
+          permission: PERMISSIONS.roleView,
+        },
+      ],
     },
   ],
 }

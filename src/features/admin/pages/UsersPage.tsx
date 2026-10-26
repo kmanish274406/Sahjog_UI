@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { api } from '@/api'
 import type { StaffDto } from '@/api/types'
 import { QueryState } from '@/components/feedback/QueryState'
@@ -17,6 +17,8 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { PERMISSIONS } from '@/config/permissions'
+import { Can } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 
@@ -78,26 +80,30 @@ export default function UsersPage() {
       align: 'right',
       render: (u) => (
         <span className={shared.row} style={{ justifyContent: 'flex-end' }}>
-          <Button size="sm" variant="secondary" onClick={() => setExtending(u)}>
-            Extend plan
-          </Button>
-          <Button
-            size="sm"
-            variant={u.active ? 'danger' : 'primary'}
-            disabled={setActive.isPending}
-            onClick={() => {
-              if (
-                !u.active ||
-                window.confirm(
-                  `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
-                )
-              ) {
-                setActive.mutate({ id: u.id, active: !u.active })
-              }
-            }}
-          >
-            {u.active ? 'Disable' : 'Enable'}
-          </Button>
+          <Can permission={PERMISSIONS.userExtend}>
+            <Button size="sm" variant="secondary" onClick={() => setExtending(u)}>
+              Extend plan
+            </Button>
+          </Can>
+          <Can permission={PERMISSIONS.userEdit}>
+            <Button
+              size="sm"
+              variant={u.active ? 'danger' : 'primary'}
+              disabled={setActive.isPending}
+              onClick={() => {
+                if (
+                  !u.active ||
+                  window.confirm(
+                    `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
+                  )
+                ) {
+                  setActive.mutate({ id: u.id, active: !u.active })
+                }
+              }}
+            >
+              {u.active ? 'Disable' : 'Enable'}
+            </Button>
+          </Can>
         </span>
       ),
     },

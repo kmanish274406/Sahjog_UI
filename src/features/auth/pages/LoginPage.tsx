@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '@/api'
 import type { AuthResult, PlatformAuthResult } from '@/api/types'
-import { Button, Input, Tabs } from '@/components/ui'
+import { Button, Tabs } from '@/components/ui'
 import { env } from '@/config/env'
 import { ROUTES } from '@/config/routes'
 import { CustomerEmailSignIn } from '../components/CustomerEmailSignIn'
@@ -20,7 +20,7 @@ const TABS: { id: Who; label: string }[] = [
   { id: 'vendor', label: 'Vendor' },
   { id: 'technician', label: 'Technician' },
   { id: 'admin', label: 'Admin' },
-  { id: 'owner', label: 'Platform owner' },
+  { id: 'owner', label: 'Owner' },
 ]
 
 const SUBTITLES: Record<Who, string> = {
@@ -42,13 +42,10 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
-  const tenant = useAuthStore((state) => state.tenant)
-  const setTenant = useAuthStore((state) => state.setTenant)
   const setSession = useAuthStore((state) => state.setSession)
   const [who, setWho] = useState<Who>('customer')
   const [customerMode, setCustomerMode] = useState<'otp' | 'email'>('otp')
   const [registering, setRegistering] = useState(false)
-  const [tenantDraft, setTenantDraft] = useState(tenant)
 
   const from = (location.state as LocationState | null)?.from?.pathname
 
@@ -94,11 +91,18 @@ export function LoginPage() {
 
       <main className={styles.formPanel}>
         <div className={styles.formWrap}>
+          <p className={styles.eyebrow}>{registering ? 'Get started' : 'Welcome back'}</p>
           <h1 className={styles.title}>{registering ? 'Create your account' : 'Sign in'}</h1>
           <p className={styles.subtitle}>{SUBTITLES[who]}</p>
 
           <div className={styles.tabs}>
-            <Tabs items={TABS} active={who} onChange={change} label="Sign in as" />
+            <Tabs
+              items={TABS}
+              active={who}
+              onChange={change}
+              label="Sign in as"
+              variant="segmented"
+            />
           </div>
 
           {who === 'customer' && (
@@ -183,26 +187,14 @@ export function LoginPage() {
               </Button>
             </p>
           )}
-
-          {who !== 'owner' && (
-            <div className={styles.tenant}>
-              <Input
-                label="Business code"
-                hint={`The business you belong to. Leave as ${env.defaultTenant} if you were not given one.`}
-                value={tenantDraft}
-                onChange={(event) => setTenantDraft(event.target.value)}
-                onBlur={() => setTenant(tenantDraft)}
-              />
-            </div>
-          )}
-
-          {DEMO && (
-            <p className={styles.note} style={{ marginTop: 16 }}>
-              Development build: the fields are pre-filled with the demo accounts. The OTP is shown
-              on screen while the API's demo mode is on. API: {env.apiUrl}
-            </p>
-          )}
         </div>
+
+        {DEMO && (
+          <p className={styles.note}>
+            Development build: the fields are pre-filled with the demo accounts. The OTP is shown on
+            screen while the API's demo mode is on. API: {env.apiUrl}
+          </p>
+        )}
       </main>
     </div>
   )
