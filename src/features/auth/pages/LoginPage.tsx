@@ -169,9 +169,6 @@ export function LoginPage() {
               signIn={api.auth.platformLogin}
               onSignedIn={ownerSignedIn}
               emailLabel="Owner email"
-              defaults={
-                DEMO ? { email: 'superadmin@sahjog.in', password: 'SuperAdmin@123' } : undefined
-              }
             />
           )}
 

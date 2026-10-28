@@ -115,7 +115,10 @@ describe.skipIf(!live)('Sahjog API, end to end', () => {
   }, 60_000)
 
   it('keeps the platform owner signed in by renewing the token', async () => {
-    const owner = await api.auth.platformLogin('superadmin@sahjog.in', 'SuperAdmin@123')
+    const owner = await api.auth.platformLogin(
+      import.meta.env.VITE_TEST_OWNER_EMAIL ?? '',
+      import.meta.env.VITE_TEST_OWNER_PASSWORD ?? '',
+    )
     useAuthStore.getState().setSession(sessionFromPlatform(owner))
     expect((await api.platform.tenants()).length).toBeGreaterThan(0)
 

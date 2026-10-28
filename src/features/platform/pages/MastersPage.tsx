@@ -5,14 +5,11 @@ import type { FeatureDefDto, MastersDto, PaymentMethodDefDto, PlanTemplateDto } 
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  Alert,
   Badge,
   Button,
   Checkbox,
   DataTable,
-  FormActions,
   Input,
-  Modal,
   Panel,
   Select,
   Tabs,
@@ -21,16 +18,23 @@ import {
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { PERMISSIONS } from '@/config/permissions'
-import { Can } from '@/hooks/usePermission'
+import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency } from '@/utils/format'
+import { AccessMaster, LookupsMaster, MenuMaster } from './MastersExtra'
+import { ActiveBadge, MasterDialog } from './masters-shared'
+import { toNumber } from './masters-utils'
+import { useLookups } from '@/hooks/useLookups'
 
-type MasterTab = 'features' | 'payments' | 'plans'
+type MasterTab = 'features' | 'payments' | 'plans' | 'menu' | 'access' | 'lookups'
 
 const TABS: { id: MasterTab; label: string }[] = [
   { id: 'features', label: 'Features' },
   { id: 'payments', label: 'Payment methods' },
   { id: 'plans', label: 'Subscription plans' },
+  { id: 'menu', label: 'Menu' },
+  { id: 'access', label: 'Access ids' },
+  { id: 'lookups', label: 'Lookups' },
 ]
 
 const DESCRIPTIONS: Record<MasterTab, string> = {
@@ -40,69 +44,35 @@ const DESCRIPTIONS: Record<MasterTab, string> = {
     'Every payment method the platform supports. Each client’s admin chooses which of these customers see.',
   plans:
     'The subscription plans every new client starts with. Each client’s admin can then change the prices.',
+  menu: 'The sidebar links of every role. A link shows only to a role that holds one of its access ids.',
+  access:
+    'Every permission the console and API can check. A new id gates something only once a screen or endpoint uses it.',
+  lookups:
+    'Small lists the console reads instead of hard-coding: stage names, plan kinds, cancellation stages and screen labels.',
 }
-
-const activeBadge = (active: boolean) => (
-  <Badge tone={active ? 'success' : 'neutral'}>{active ? 'Active' : 'Hidden'}</Badge>
-)
-
-const toNumber = (value: string) => (value.trim() === '' ? undefined : Number(value))
 
 export default function MastersPage() {
   const masters = useApiQuery(['platform', 'masters'], api.platform.masters)
   const [tab, setTab] = useState<MasterTab>('features')
+  const lookups = useLookups()
+  const tabs = TABS.map((t) => ({
+    ...t,
+    label: lookups.text('label', `masters.tab.${t.id}`, t.label),
+  }))
 
   return (
     <div className={shared.stack}>
       <PageHeader title="Masters" description={DESCRIPTIONS[tab]} />
-      <Tabs items={TABS} active={tab} onChange={setTab} label="Master lists" />
+      <Tabs items={tabs} active={tab} onChange={setTab} label="Master lists" />
       <QueryState isLoading={masters.isLoading} error={masters.error}>
         {masters.data && tab === 'features' && <FeaturesMaster data={masters.data} />}
         {masters.data && tab === 'payments' && <PaymentsMaster data={masters.data} />}
         {masters.data && tab === 'plans' && <PlansMaster data={masters.data} />}
+        {masters.data && tab === 'menu' && <MenuMaster data={masters.data} />}
+        {masters.data && tab === 'access' && <AccessMaster data={masters.data} />}
+        {masters.data && tab === 'lookups' && <LookupsMaster data={masters.data} />}
       </QueryState>
     </div>
-  )
-}
-
-function MasterDialog({
-  title,
-  onClose,
-  error,
-  saving,
-  valid,
-  onSubmit,
-  children,
-}: {
-  title: string
-  onClose: () => void
-  error?: string
-  saving: boolean
-  valid: boolean
-  onSubmit: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <Modal open title={title} onClose={onClose}>
-      <form
-        className={shared.stackTight}
-        onSubmit={(e) => {
-          e.preventDefault()
-          onSubmit()
-        }}
-      >
-        <div className={shared.formGrid}>{children}</div>
-        {error && <Alert tone="danger">{error}</Alert>}
-        <FormActions>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" loading={saving} disabled={!valid}>
-            Save
-          </Button>
-        </FormActions>
-      </form>
-    </Modal>
   )
 }
 
@@ -115,7 +85,7 @@ function FeaturesMaster({ data }: { data: MastersDto }) {
     { key: 'code', header: 'Code', render: (f) => <span className={shared.mono}>{f.code}</span> },
     { key: 'description', header: 'Description', render: (f) => f.description || '-' },
     { key: 'order', header: 'Order', render: (f) => f.sortOrder },
-    { key: 'status', header: 'Status', render: (f) => activeBadge(f.active) },
+    { key: 'status', header: 'Status', render: (f) => <ActiveBadge active={f.active} /> },
     {
       key: 'actions',
       header: '',
@@ -222,7 +192,7 @@ function PaymentsMaster({ data }: { data: MastersDto }) {
     { key: 'code', header: 'Code', render: (m) => <span className={shared.mono}>{m.code}</span> },
     { key: 'feature', header: 'Needs feature', render: (m) => featureName(m.featureCode) },
     { key: 'order', header: 'Order', render: (m) => m.sortOrder },
-    { key: 'status', header: 'Status', render: (m) => activeBadge(m.active) },
+    { key: 'status', header: 'Status', render: (m) => <ActiveBadge active={m.active} /> },
     {
       key: 'actions',
       header: '',
@@ -341,7 +311,7 @@ function PlansMaster({ data }: { data: MastersDto }) {
     { key: 'period', header: 'Period', render: (p) => `${p.months} mo (${p.period})` },
     { key: 'price', header: 'Price', render: (p) => formatCurrency(p.price) },
     { key: 'save', header: 'Badge', render: (p) => p.save || '-' },
-    { key: 'status', header: 'Status', render: (p) => activeBadge(p.active) },
+    { key: 'status', header: 'Status', render: (p) => <ActiveBadge active={p.active} /> },
     {
       key: 'actions',
       header: '',
@@ -396,6 +366,16 @@ function PlansMaster({ data }: { data: MastersDto }) {
 
 function PlanForm({ row, onClose }: { row: PlanTemplateDto | 'new'; onClose: () => void }) {
   const isNew = row === 'new'
+  // Plan kinds come from the lookup table (the plan kind itself is a role the API knows: vendor or technician).
+  const lookupKinds = useLookups().list('planKind')
+  const kindOptions = (
+    lookupKinds.length
+      ? lookupKinds
+      : [
+          { code: 'Vendor', label: 'Vendor' },
+          { code: 'Technician', label: 'Technician' },
+        ]
+  ).map((k) => ({ value: k.code, label: k.label }))
   const [form, setForm] = useState({
     kind: isNew ? 'Vendor' : row.kind,
     name: isNew ? '' : row.name,
@@ -445,10 +425,7 @@ function PlanForm({ row, onClose }: { row: PlanTemplateDto | 'new'; onClose: () 
       <Select
         label="For"
         required
-        options={[
-          { value: 'Vendor', label: 'Vendor' },
-          { value: 'Technician', label: 'Technician' },
-        ]}
+        options={kindOptions}
         value={form.kind}
         onChange={(e) => setForm({ ...form, kind: e.target.value })}
       />

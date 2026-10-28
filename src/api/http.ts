@@ -13,6 +13,8 @@ export interface RequestOptions {
   auth?: boolean
   /** A multipart upload instead of JSON. */
   form?: FormData
+  /** The answer is a file (an image), returned as a Blob. */
+  blob?: boolean
 }
 
 /** What to say when the server answered without its usual message (a proxy, or a crash before the API's own handler). */
@@ -70,6 +72,8 @@ async function send<T>(
   } finally {
     window.clearTimeout(timer)
   }
+
+  if (options.blob && res.ok) return { data: (await res.blob()) as T, message: null }
 
   const text = await res.text()
   let envelope: ApiEnvelope<T> | null = null

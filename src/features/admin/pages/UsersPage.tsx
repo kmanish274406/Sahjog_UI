@@ -18,7 +18,7 @@ import {
 import type { Column } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { PERMISSIONS } from '@/config/permissions'
-import { Can } from '@/hooks/usePermission'
+import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 

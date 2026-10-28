@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { api } from '@/api'
 import type { PermissionRule } from '@/config/permissions'
 import { useAuthStore } from '@/features/auth/store/auth.store'
@@ -20,9 +19,4 @@ export function usePermission() {
   const can = (rule: PermissionRule) =>
     (Array.isArray(rule) ? rule : [rule]).some((id) => granted.has(id))
   return Object.assign(can, { loaded: access.data !== undefined })
-}
-
-/** Shows its children only to a role that has been granted the access id: wrap every action button in it. */
-export function Can({ permission, children }: { permission: PermissionRule; children: ReactNode }) {
-  return usePermission()(permission) ? <>{children}</> : null
 }

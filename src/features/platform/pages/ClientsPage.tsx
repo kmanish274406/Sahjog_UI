@@ -28,7 +28,7 @@ import {
 import type { Column } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
 import { clientPath } from '@/config/routes'
-import { Can } from '@/hooks/usePermission'
+import { Can } from '@/hooks/Can'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { isEmail, normalisePhone } from '@/domain/validators'
 import shared from '@/styles/shared.module.css'

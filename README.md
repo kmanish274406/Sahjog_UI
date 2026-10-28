@@ -38,7 +38,7 @@ after a pause can take a minute (the client waits up to 90 seconds).
 
 Demo accounts of the seeded database (the sign-in page pre-fills them in development): customer
 `9876543210` (OTP `123456`), vendor `9876543210` (any password), technician `9876500011` (OTP `123456`),
-admin `admin@sahjog.in` / `Admin@123`, platform owner `superadmin@sahjog.in` / `SuperAdmin@123`.
+admin `admin@sahjog.in` / `Admin@123`, the platform owner is the login the API was first started with (`Platform__SuperAdmin__Email` / `__Password`).
 
 The platform owner exists **only here**: the MAUI app no longer has those screens.
 

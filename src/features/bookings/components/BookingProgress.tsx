@@ -2,10 +2,13 @@ import clsx from 'clsx'
 import { Check } from 'lucide-react'
 import { STAGE_FLOW, STAGE_LABELS } from '@/domain/constants'
 import type { BookingStage } from '@/domain/types'
+import { useLookups } from '@/hooks/useLookups'
 import styles from './BookingProgress.module.css'
 
 /** The path a booking follows. A cancelled or rejected booking stops where it ended and says so. */
 export function BookingProgress({ stage }: { stage: BookingStage }) {
+  const lookups = useLookups()
+  const name = (s: BookingStage) => lookups.text('stage', s, STAGE_LABELS[s])
   const failed = stage === 'Cancelled' || stage === 'Rejected'
   const reached = failed ? -1 : STAGE_FLOW.indexOf(stage)
 
@@ -28,14 +31,14 @@ export function BookingProgress({ stage }: { stage: BookingStage }) {
             <span className={styles.dot}>
               {done ? <Check size={14} aria-hidden="true" /> : index + 1}
             </span>
-            <span className={styles.label}>{STAGE_LABELS[step]}</span>
+            <span className={styles.label}>{name(step)}</span>
           </li>
         )
       })}
       {failed && (
         <li className={clsx(styles.step, styles.failed)}>
           <span className={styles.dot}>!</span>
-          <span className={styles.label}>{STAGE_LABELS[stage]}</span>
+          <span className={styles.label}>{name(stage)}</span>
         </li>
       )}
     </ol>

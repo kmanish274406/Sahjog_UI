@@ -20,9 +20,21 @@ function initials(name: string): string {
 export interface AvatarProps {
   name: string
   size?: number
+  /** A picture to show instead of the initials. */
+  src?: string
 }
 
-export function Avatar({ name, size = 32 }: AvatarProps) {
+export function Avatar({ name, size = 32, src }: AvatarProps) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        className={styles.avatar}
+        style={{ width: size, height: size, objectFit: 'cover' }}
+      />
+    )
+  }
   return (
     <span
       className={styles.avatar}

@@ -8,7 +8,7 @@ import { Alert, Badge, Button, DescriptionList, Panel, Toggle } from '@/componen
 import { PERMISSIONS } from '@/config/permissions'
 import { ROUTES } from '@/config/routes'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
-import { Can } from '@/hooks/usePermission'
+import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 

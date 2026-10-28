@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { PERMISSIONS } from '@/config/permissions'
@@ -104,6 +104,16 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
+    permission: PERMISSIONS.staffView,
+    routes: [page(rel(ROUTES.staff), () => import('@/features/admin/pages/StaffPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.roleView,
+    routes: [page(rel(ROUTES.staffRoles), () => import('@/features/admin/pages/StaffRolesPage'))],
+  },
+  {
+    roles: ['admin'],
     permission: PERMISSIONS.reportView,
     routes: [page(rel(ROUTES.reports), () => import('@/features/admin/pages/ReportsPage'))],
   },
@@ -129,7 +139,7 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['super_admin'],
-    permission: PERMISSIONS.roleView,
+    permission: PERMISSIONS.adminRoleView,
     routes: [page(rel(ROUTES.roles), () => import('@/features/platform/pages/RolesPage'))],
   },
 ]

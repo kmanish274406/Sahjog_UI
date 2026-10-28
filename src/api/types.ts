@@ -48,7 +48,83 @@ export interface AccessPermissionDto {
   label: string
   sortOrder: number
   platformOnly: boolean
+  active: boolean
 }
+
+export interface MenuItemDto {
+  id: number
+  audience: string
+  groupTitle: string
+  groupOrder: number
+  label: string
+  route: string
+  icon: string
+  accessId: string
+  sortOrder: number
+  active: boolean
+}
+
+export interface LookupItemDto {
+  id: number
+  type: string
+  code: string
+  label: string
+  sortOrder: number
+  active: boolean
+}
+
+/** One link of the signed-in role's sidebar, already filtered by what the role may open. */
+export interface MenuLinkDto {
+  groupTitle: string
+  label: string
+  route: string
+  icon: string
+}
+
+export type LookupLists = Record<string, { code: string; label: string }[]>
+
+export interface StaffRoleDto {
+  id: number
+  name: string
+  description: string
+  active: boolean
+  accessIds: string[]
+  staffCount: number
+}
+
+export interface StaffRolesDto {
+  catalog: AccessPermissionDto[]
+  roles: StaffRoleDto[]
+}
+
+export interface StaffMemberDto {
+  id: number
+  name: string
+  email: string
+  roleId: number | null
+  roleName: string
+  active: boolean
+  createdAt: string
+}
+
+export interface SaveStaffRoleRequest {
+  name?: string
+  description?: string
+  active?: boolean
+  accessIds?: string[]
+}
+
+export interface SaveStaffRequest {
+  name?: string
+  email?: string
+  password?: string
+  roleId?: number
+  active?: boolean
+}
+
+export type SaveMenuItemRequest = Partial<Omit<MenuItemDto, 'id'>>
+export type SaveLookupItemRequest = Partial<Omit<LookupItemDto, 'id'>>
+export type SaveAccessPermissionRequest = Partial<AccessPermissionDto>
 
 /** The access ids an Admin can be given, and the ones the Admin role holds now. */
 export interface RoleAccessDto {
@@ -60,6 +136,9 @@ export interface MastersDto {
   features: FeatureDefDto[]
   paymentMethods: PaymentMethodDefDto[]
   planTemplates: PlanTemplateDto[]
+  menu: MenuItemDto[]
+  lookups: LookupItemDto[]
+  access: AccessPermissionDto[]
 }
 
 export type SaveFeatureDefRequest = Partial<Omit<FeatureDefDto, 'active'>> & { active?: boolean }
@@ -117,6 +196,10 @@ export interface ProfileDto {
   email: string | null
   emoji: string
   isActive: boolean
+  /** yyyy-MM-dd, or empty. */
+  dateOfBirth: string
+  /** A public path to the profile picture, or empty. */
+  photo: string
   wallet: number
   couponUsed: boolean
   business: string
@@ -124,6 +207,11 @@ export interface ProfileDto {
   address: string
   bank: string
   ifsc: string
+  bankHolder: string
+  bankName: string
+  /** The person's own Aadhaar number (vendor and technician). */
+  aadhaar: string
+  hasAadhaarPhoto: boolean
   rating: number
   reviews: number
   vendorId: number | null
@@ -152,6 +240,11 @@ export interface UpdateProfileRequest {
   address?: string
   bank?: string
   ifsc?: string
+  /** yyyy-MM-dd; an empty text clears it. */
+  dateOfBirth?: string
+  bankHolder?: string
+  bankName?: string
+  aadhaar?: string
   skill?: string
   skills?: string
   experience?: number

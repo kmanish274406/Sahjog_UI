@@ -32,8 +32,21 @@ import type {
   PlatformAuthResult,
   ProfileDto,
   ProviderDto,
+  AccessPermissionDto,
+  LookupItemDto,
+  LookupLists,
+  MenuItemDto,
+  MenuLinkDto,
   ReportDto,
   RoleAccessDto,
+  SaveAccessPermissionRequest,
+  SaveLookupItemRequest,
+  SaveMenuItemRequest,
+  SaveStaffRequest,
+  SaveStaffRoleRequest,
+  StaffMemberDto,
+  StaffRoleDto,
+  StaffRolesDto,
   SaveAddressRequest,
   SaveCategoryRequest,
   SaveContentRequest,
@@ -66,6 +79,8 @@ const del = (path: string) => request<boolean>(path, { method: 'DELETE' })
 export const api = {
   auth: {
     access: () => request<string[]>('/api/auth/access'),
+    menu: () => request<MenuLinkDto[]>('/api/auth/menu'),
+    lookups: () => request<LookupLists>('/api/auth/lookups'),
     customerSendOtp: (phone: string) =>
       request<OtpResult>('/api/auth/customer/send-otp', {
         method: 'POST',
@@ -118,6 +133,18 @@ export const api = {
       request<boolean>('/api/auth/logout', { method: 'POST', body: { refreshToken }, auth: false }),
     me: () => request<ProfileDto>('/api/auth/me'),
     updateMe: (r: UpdateProfileRequest) => put<ProfileDto>('/api/auth/me', r),
+    uploadPhoto: (file: File) => {
+      const form = new FormData()
+      form.append('file', file)
+      return request<ProfileDto>('/api/auth/me/photo', { method: 'POST', form })
+    },
+    uploadAadhaarPhoto: (file: File) => {
+      const form = new FormData()
+      form.append('file', file)
+      return request<ProfileDto>('/api/auth/me/aadhaar-photo', { method: 'POST', form })
+    },
+    /** The Aadhaar card image, fetched with the person's own token (it is not a public file). */
+    aadhaarPhoto: () => request<Blob>('/api/auth/me/aadhaar-photo', { blob: true }),
   },
 
   tenant: {
@@ -241,6 +268,15 @@ export const api = {
     updateContent: (id: number, r: SaveContentRequest) =>
       put<ContentDto>(`/api/admin/content/${id}`, r),
     deleteContent: (id: number) => del(`/api/admin/content/${id}`),
+    roles: () => request<StaffRolesDto>('/api/admin/roles'),
+    addRole: (r: SaveStaffRoleRequest) => post<StaffRoleDto>('/api/admin/roles', r),
+    updateRole: (id: number, r: SaveStaffRoleRequest) =>
+      put<StaffRoleDto>(`/api/admin/roles/${id}`, r),
+    deleteRole: (id: number) => del(`/api/admin/roles/${id}`),
+    staff: () => request<StaffMemberDto[]>('/api/admin/staff'),
+    addStaff: (r: SaveStaffRequest) => post<StaffMemberDto>('/api/admin/staff', r),
+    updateStaff: (id: number, r: SaveStaffRequest) =>
+      put<StaffMemberDto>(`/api/admin/staff/${id}`, r),
     updateSettings: (r: UpdateSettingsRequest) => put<SettingsDto>('/api/admin/settings', r),
     updatePlans: (rows: { planId: number; price: number }[]) =>
       put<PlanDto[]>('/api/admin/plans', rows),
@@ -248,6 +284,21 @@ export const api = {
 
   platform: {
     access: () => request<string[]>('/api/platform/access'),
+    menu: () => request<MenuLinkDto[]>('/api/platform/menu'),
+    lookups: () => request<LookupLists>('/api/platform/lookups'),
+    addMenuItem: (r: SaveMenuItemRequest) => post<MenuItemDto>('/api/platform/masters/menu', r),
+    updateMenuItem: (id: number, r: SaveMenuItemRequest) =>
+      put<MenuItemDto>(`/api/platform/masters/menu/${id}`, r),
+    deleteMenuItem: (id: number) => del(`/api/platform/masters/menu/${id}`),
+    addLookup: (r: SaveLookupItemRequest) =>
+      post<LookupItemDto>('/api/platform/masters/lookups', r),
+    updateLookup: (id: number, r: SaveLookupItemRequest) =>
+      put<LookupItemDto>(`/api/platform/masters/lookups/${id}`, r),
+    deleteLookup: (id: number) => del(`/api/platform/masters/lookups/${id}`),
+    addAccess: (r: SaveAccessPermissionRequest) =>
+      post<AccessPermissionDto>('/api/platform/masters/access', r),
+    updateAccess: (accessId: string, r: SaveAccessPermissionRequest) =>
+      put<AccessPermissionDto>(`/api/platform/masters/access/${encodeURIComponent(accessId)}`, r),
     adminRole: () => request<RoleAccessDto>('/api/platform/roles/admin'),
     saveAdminRole: (accessIds: string[]) =>
       put<RoleAccessDto>('/api/platform/roles/admin', { accessIds }),

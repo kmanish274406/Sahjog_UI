@@ -7,11 +7,13 @@ import { Alert, Button, Input, Panel, Tabs, Toggle } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
 import { CANCEL_STAGE_LABELS } from '@/domain/constants'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { useLookups } from '@/hooks/useLookups'
 import { usePermission } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 
 type SettingsTab = 'fees' | 'cancellation' | 'payments' | 'coupon' | 'plans'
 
+/** Tab ids with their fallback names; the names are read from the lookup table (label rows `settings.tab.<id>`). */
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'fees', label: 'Fees & commission' },
   { id: 'cancellation', label: 'Cancellation' },
@@ -37,7 +39,11 @@ export default function SettingsPage() {
     coupon: can(PERMISSIONS.couponEdit) && (features?.coupon ?? false),
     plans: can(PERMISSIONS.planEdit) && (features?.subscriptions ?? false),
   }
-  const tabs = TABS.filter((t) => allowed[t.id])
+  const lookups = useLookups()
+  const tabs = TABS.filter((t) => allowed[t.id]).map((t) => ({
+    ...t,
+    label: lookups.text('label', `settings.tab.${t.id}`, t.label),
+  }))
   const current = allowed[tab] ? tab : 'fees'
 
   return (
@@ -155,6 +161,7 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
 }
 
 function CancellationForm({ settings }: { settings: SettingsDto }) {
+  const lookups = useLookups()
   const [values, setValues] = useState(
     CANCEL_STAGE_LABELS.map((_, i) => String(settings.cancelPercents[i] ?? 0)),
   )
@@ -177,10 +184,10 @@ function CancellationForm({ settings }: { settings: SettingsDto }) {
         }}
       >
         <div className={shared.formGrid}>
-          {CANCEL_STAGE_LABELS.map((label, i) => (
+          {CANCEL_STAGE_LABELS.map((fallback, i) => (
             <Input
-              key={label}
-              label={label}
+              key={fallback}
+              label={lookups.text('cancelStage', String(i), fallback)}
               type="number"
               min={0}
               max={100}
@@ -276,6 +283,14 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
 }
 
 function PlansForm({ plans }: { plans: PlanDto[] }) {
+  const lookups = useLookups()
+  // The plan kinds come from the lookup table; the fallback keeps the page working until it loads.
+  const kinds = lookups.list('planKind').length
+    ? lookups.list('planKind')
+    : [
+        { code: 'Vendor', label: 'Vendor' },
+        { code: 'Technician', label: 'Technician' },
+      ]
   const [prices, setPrices] = useState(
     Object.fromEntries(plans.map((p) => [p.id, String(p.price)])),
   )
@@ -293,9 +308,9 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
           save.mutate(undefined)
         }}
       >
-        {['Vendor', 'Technician'].map((kind) => (
+        {kinds.map(({ code: kind, label }) => (
           <div key={kind} style={{ marginBottom: 16 }}>
-            <p className={shared.sectionTitle}>{kind} plans</p>
+            <p className={shared.sectionTitle}>{label} plans</p>
             <div className={shared.grid3}>
               {plans
                 .filter((p) => p.kind === kind)
