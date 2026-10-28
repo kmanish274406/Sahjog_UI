@@ -1,0 +1,1 @@
+import{L as e}from"./useApi-B4mVcjUn.js";import{t}from"./index-6gxuPKpM.js";var n=e();function r({permission:e,children:r}){return t()(e)?(0,n.jsx)(n.Fragment,{children:r}):null}export{r as t};
