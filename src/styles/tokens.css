@@ -1,31 +1,31 @@
 :root {
   /* Surfaces & ink: cool paper, deep navy ink */
-  --color-bg: #f3f5f9;
+  --color-bg: #f3f6fb;
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f8fb;
-  --color-border: #dfe4ed;
+  --color-surface-muted: #f1f6fb;
+  --color-border: #e1e9f2;
   --color-border-strong: #c3ccdb;
-  --color-text: #141f33;
-  --color-text-muted: #5b6678;
-  --color-text-subtle: #8591a5;
+  --color-text: #0e2347;
+  --color-text-muted: #5a6e8c;
+  --color-text-subtle: #8d9cb3;
 
   /* Brand: Sahjog navy + saffron orange */
   --color-primary: #082c54;
   --color-primary-hover: #051f3d;
-  --color-primary-soft: #e3edf8;
-  --color-accent: #e8690b;
-  --color-accent-strong: #c25500;
+  --color-primary-soft: #e8f1fb;
+  --color-accent: #ff7610;
+  --color-accent-strong: #c75300;
   --color-accent-soft: #fff0e3;
 
   /* Status (always paired with a label) */
-  --color-success: #2a7658;
-  --color-success-soft: #e0f1e8;
-  --color-warning: #99620f;
+  --color-success: #12805c;
+  --color-success-soft: #e3f6ee;
+  --color-warning: #a86400;
   --color-warning-soft: #fbefd5;
-  --color-danger: #aa3341;
-  --color-danger-soft: #fbe8ea;
-  --color-info: #2b629a;
-  --color-info-soft: #e1ecf7;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-info: #0f4f8a;
+  --color-info-soft: #e8f1fb;
   --color-neutral-soft: #e9edf3;
 
   /* Chart categorical order (validated for colour-vision separation) */

@@ -4,6 +4,7 @@ import { api } from '@/api'
 import { Alert, Button } from '@/components/ui'
 import { ROUTES } from '@/config/routes'
 import { useAuthStore } from '@/features/auth/store/auth.store'
+import { ChatWidget } from '@/features/chat/ChatWidget'
 import { useIdleLogout } from '@/features/auth/hooks/useIdleLogout'
 import { useApiQuery } from '@/hooks/useApi'
 import { useUiStore } from '@/store/ui.store'
@@ -77,6 +78,7 @@ export function AppLayout() {
           </div>
           <Outlet />
         </main>
+        {role !== 'super_admin' && <ChatWidget />}
       </div>
     </div>
   )
