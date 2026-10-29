@@ -32,6 +32,39 @@
     box-shadow 0.12s;
 }
 
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap .control {
+  padding-right: 42px;
+}
+
+.reveal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.reveal:hover {
+  color: var(--color-text);
+}
+
+.reveal:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
 .control::placeholder {
   color: var(--color-text-subtle);
 }

@@ -21,6 +21,13 @@ import {
   Textarea,
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
+import {
+  amountProblem,
+  collect,
+  nameProblem,
+  optionalPercentProblem,
+  requiredChoiceProblem,
+} from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { PERMISSIONS } from '@/config/permissions'
 import { Can } from '@/hooks/Can'
@@ -269,17 +276,25 @@ function ServiceForm({
   const [categoryId, setCategoryId] = useState(String(s?.categoryId ?? ''))
   const [name, setName] = useState(s?.name ?? '')
   const [short, setShort] = useState(s?.short ?? '')
-  const [emoji, setEmoji] = useState(s?.emoji ?? 'ðŸ› ï¸')
+  const [emoji, setEmoji] = useState(s?.emoji ?? '🛠️')
   const [basePrice, setBasePrice] = useState(String(s?.basePrice ?? ''))
   const [commission, setCommission] = useState(String(s?.commission ?? ''))
   const [active, setActive] = useState(s?.active ?? true)
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    categoryId: requiredChoiceProblem(categoryId, 'category'),
+    name: nameProblem(name, 'service name'),
+    basePrice: amountProblem(basePrice, 'base price'),
+    commission: optionalPercentProblem(commission, 'commission'),
+    emoji: emoji.trim() === '' ? 'Add an icon.' : undefined,
+  })
   const save = useApiMutation(
     () => {
       const body = {
         categoryId: Number(categoryId),
-        name,
-        short,
-        emoji,
+        name: name.trim(),
+        short: short.trim(),
+        emoji: emoji.trim(),
         basePrice: Number(basePrice),
         commission: commission === '' ? undefined : Number(commission),
         active,
@@ -293,6 +308,7 @@ function ServiceForm({
       className={shared.stackTight}
       onSubmit={(e) => {
         e.preventDefault()
+        if (Object.keys(errors).length > 0) return setShowErrors(true)
         save.mutate(undefined)
       }}
     >
@@ -302,6 +318,7 @@ function ServiceForm({
         placeholder="Choose a category"
         value={categoryId}
         onChange={(e) => setCategoryId(e.target.value)}
+        error={showErrors ? errors.categoryId : undefined}
         options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
       />
       <div className={shared.formGrid}>
@@ -311,12 +328,14 @@ function ServiceForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={80}
+          error={showErrors ? errors.name : undefined}
         />
         <Input
           label="Icon (emoji)"
           value={emoji}
           onChange={(e) => setEmoji(e.target.value)}
           maxLength={8}
+          error={showErrors ? errors.emoji : undefined}
         />
       </div>
       <Input
@@ -327,12 +346,13 @@ function ServiceForm({
       />
       <div className={shared.formGrid}>
         <Input
-          label="Base price (â‚¹)"
+          label="Base price (₹)"
           required
           type="number"
           min={1}
           value={basePrice}
           onChange={(e) => setBasePrice(e.target.value)}
+          error={showErrors ? errors.basePrice : undefined}
         />
         <Input
           label="Commission (%)"
@@ -343,6 +363,7 @@ function ServiceForm({
           hint="Leave empty to use the default."
           value={commission}
           onChange={(e) => setCommission(e.target.value)}
+          error={showErrors ? errors.commission : undefined}
         />
       </div>
       <Checkbox
@@ -355,11 +376,7 @@ function ServiceForm({
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          loading={save.isPending}
-          disabled={!categoryId || name.trim().length < 2 || !(Number(basePrice) > 0)}
-        >
+        <Button type="submit" loading={save.isPending}>
           Save service
         </Button>
       </div>
@@ -373,13 +390,15 @@ function CategoryForm({ editing, onDone }: { editing: CategoryDto | 'new'; onDon
   const [description, setDescription] = useState(c?.description ?? '')
   const [image, setImage] = useState<string | null>(c?.image ?? null)
   const [active, setActive] = useState(c?.active ?? true)
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({ name: nameProblem(name, 'category name') })
   const upload = useApiMutation((file: File) => api.uploads.image(file), {
     meta: { inline: true },
     onSuccess: setImage,
   })
   const save = useApiMutation(
     () => {
-      const body = { name, description, image, active }
+      const body = { name: name.trim(), description: description.trim(), image, active }
       return c ? api.admin.updateCategory(c.id, body) : api.admin.addCategory(body)
     },
     { meta: { inline: true, success: 'Category saved.' }, onSuccess: onDone },
@@ -389,6 +408,7 @@ function CategoryForm({ editing, onDone }: { editing: CategoryDto | 'new'; onDon
       className={shared.stackTight}
       onSubmit={(e) => {
         e.preventDefault()
+        if (Object.keys(errors).length > 0) return setShowErrors(true)
         save.mutate(undefined)
       }}
     >
@@ -398,6 +418,7 @@ function CategoryForm({ editing, onDone }: { editing: CategoryDto | 'new'; onDon
         value={name}
         onChange={(e) => setName(e.target.value)}
         maxLength={80}
+        error={showErrors ? errors.name : undefined}
       />
       <Textarea
         label="Description"
@@ -436,7 +457,7 @@ function CategoryForm({ editing, onDone }: { editing: CategoryDto | 'new'; onDon
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" loading={save.isPending} disabled={name.trim().length < 2}>
+        <Button type="submit" loading={save.isPending}>
           Save category
         </Button>
       </div>

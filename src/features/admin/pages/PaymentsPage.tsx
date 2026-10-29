@@ -16,6 +16,7 @@ import {
   Select,
 } from '@/components/ui'
 import type { BadgeProps, Column } from '@/components/ui'
+import { amountProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { PERMISSIONS } from '@/config/permissions'
 import { Can } from '@/hooks/Can'
@@ -138,6 +139,9 @@ export default function PaymentsPage() {
 function RefundForm({ payment, onDone }: { payment: PaymentRowDto; onDone: () => void }) {
   const left = payment.amount - payment.refunded
   const [amount, setAmount] = useState(String(left))
+  const problem =
+    amountProblem(amount, 'refund amount', left) ??
+    (Number(amount) > left ? `You can refund at most ${formatCurrency(left)}.` : undefined)
   const refund = useApiMutation(
     () => api.payments.refund(payment.id, Number(amount) === left ? undefined : Number(amount)),
     {
@@ -152,13 +156,14 @@ function RefundForm({ payment, onDone }: { payment: PaymentRowDto; onDone: () =>
         <strong>{formatCurrency(left)}</strong> can still be refunded.
       </p>
       <Input
-        label="Amount to refund (â‚¹)"
+        label="Amount to refund (₹)"
         type="number"
         min={1}
         max={left}
         step="0.01"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
+        error={problem}
       />
       {refund.isError && <Alert tone="danger">{refund.error.message}</Alert>}
       <div className={shared.formActions}>
@@ -168,8 +173,11 @@ function RefundForm({ payment, onDone }: { payment: PaymentRowDto; onDone: () =>
         <Button
           variant="danger"
           loading={refund.isPending}
-          disabled={!(Number(amount) > 0) || Number(amount) > left}
-          onClick={() => refund.mutate(undefined)}
+          disabled={problem !== undefined}
+          onClick={() => {
+            if (window.confirm(`Refund ${formatCurrency(Number(amount))} to ${payment.user}?`))
+              refund.mutate(undefined)
+          }}
         >
           Send refund
         </Button>
