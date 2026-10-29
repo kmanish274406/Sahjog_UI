@@ -6,6 +6,8 @@ import type {
   BookingDto,
   CancelQuoteDto,
   CategoryDto,
+  ChatReply,
+  ChatRequest,
   ContentDto,
   CouponResult,
   CreateTenantRequest,
@@ -150,6 +152,10 @@ export const api = {
   tenant: {
     current: () => request<TenantDto>('/api/tenant', { auth: false }),
     mine: () => request<TenantInfoDto>('/api/admin/tenant'),
+  },
+
+  chat: {
+    ask: (r: ChatRequest) => post<ChatReply>('/api/chat', r),
   },
 
   catalog: {

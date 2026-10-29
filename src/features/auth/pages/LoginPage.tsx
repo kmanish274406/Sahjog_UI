@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '@/api'
 import type { AuthResult, PlatformAuthResult } from '@/api/types'
-import { Button, Tabs } from '@/components/ui'
+import { ArrowLeft, Building2, HardHat, ShieldCheck, Store } from 'lucide-react'
+import { Button } from '@/components/ui'
 import { env } from '@/config/env'
 import { ROUTES } from '@/config/routes'
 import { CustomerEmailSignIn } from '../components/CustomerEmailSignIn'
@@ -15,12 +16,11 @@ import styles from './LoginPage.module.css'
 
 type Who = 'customer' | 'vendor' | 'technician' | 'admin' | 'owner'
 
-const TABS: { id: Who; label: string }[] = [
-  { id: 'customer', label: 'Customer' },
-  { id: 'vendor', label: 'Vendor' },
-  { id: 'technician', label: 'Technician' },
-  { id: 'admin', label: 'Admin' },
-  { id: 'owner', label: 'Owner' },
+const ROLES: { id: Exclude<Who, 'customer'>; label: string; icon: typeof Store; tint: string }[] = [
+  { id: 'vendor', label: 'Vendor', icon: Store, tint: styles.tintBlue },
+  { id: 'technician', label: 'Technician', icon: HardHat, tint: styles.tintOrange },
+  { id: 'admin', label: 'Admin', icon: ShieldCheck, tint: styles.tintPurple },
+  { id: 'owner', label: 'Owner', icon: Building2, tint: styles.tintNavy },
 ]
 
 const SUBTITLES: Record<Who, string> = {
@@ -43,7 +43,7 @@ export function LoginPage() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const setSession = useAuthStore((state) => state.setSession)
-  const [who, setWho] = useState<Who>('customer')
+  const [who, setWho] = useState<Who | null>(null)
   const [customerMode, setCustomerMode] = useState<'otp' | 'email'>('otp')
   const [registering, setRegistering] = useState(false)
 
@@ -66,43 +66,49 @@ export function LoginPage() {
     setSession(sessionFromPlatform(result))
     navigate(ROUTES.clients, { replace: true })
   }
-  const change = (next: Who) => {
+  const change = (next: Who | null) => {
     setWho(next)
     setRegistering(false)
   }
 
+  if (who === null) {
+    return (
+      <div className={styles.page}>
+        <main className={styles.shell}>
+          <img className={styles.logo} src="/sahjog-logo.png" alt="Sahjog" />
+          <img className={styles.hero} src="/hero-home.svg" alt="" />
+          <button type="button" className={styles.start} onClick={() => change('customer')}>
+            Get Started
+          </button>
+          <p className={styles.or}>Working with Sahjog?</p>
+          <div className={styles.roles}>
+            {ROLES.map(({ id, label, icon: Icon, tint }) => (
+              <button key={id} type="button" className={styles.role} onClick={() => change(id)}>
+                <span className={`${styles.badge} ${tint}`}>
+                  <Icon size={22} aria-hidden />
+                </span>
+                {label}
+              </button>
+            ))}
+          </div>
+        </main>
+        <p className={styles.legal}>© 2026 Sahjog. All rights reserved.</p>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.page}>
-      <aside className={styles.brandPanel}>
-        <div className={styles.brandTop}>
-          <span className={styles.logoCard}>
-            <img className={styles.logo} src="/sahjog-logo.png" alt="Sahjog" />
-          </span>
-        </div>
+      <main className={styles.shell}>
         <div>
-          <p className={styles.tagline}>Har kaam ka saathi, one tap away.</p>
-          <p className={styles.taglineSub}>
-            Customers book verified professionals, vendors run their orders and teams, technicians
-            take jobs, and every business is managed from one console.
-          </p>
-        </div>
-        <p className={styles.legal}>© 2026 Sahjog. All rights reserved.</p>
-      </aside>
-
-      <main className={styles.formPanel}>
-        <div className={styles.formWrap}>
-          <p className={styles.eyebrow}>{registering ? 'Get started' : 'Welcome back'}</p>
-          <h1 className={styles.title}>{registering ? 'Create your account' : 'Sign in'}</h1>
-          <p className={styles.subtitle}>{SUBTITLES[who]}</p>
-
-          <div className={styles.tabs}>
-            <Tabs
-              items={TABS}
-              active={who}
-              onChange={change}
-              label="Sign in as"
-              variant="segmented"
-            />
+          <button type="button" className={styles.back} onClick={() => change(null)}>
+            <ArrowLeft size={16} aria-hidden /> Back
+          </button>
+          <div className={styles.formHead}>
+            <div>
+              <h1 className={styles.title}>{registering ? 'Create your account' : 'Sign in'}</h1>
+              <p className={styles.subtitle}>{SUBTITLES[who]}</p>
+            </div>
           </div>
 
           {who === 'customer' && (
@@ -185,14 +191,14 @@ export function LoginPage() {
             </p>
           )}
         </div>
-
-        {DEMO && (
-          <p className={styles.note}>
-            Development build: the fields are pre-filled with the demo accounts. The OTP is shown on
-            screen while the API's demo mode is on. API: {env.apiUrl}
-          </p>
-        )}
       </main>
+
+      {DEMO && (
+        <p className={styles.note}>
+          Development build: the fields are pre-filled with the demo accounts. The OTP is shown on
+          screen while the API's demo mode is on. API: {env.apiUrl}
+        </p>
+      )}
     </div>
   )
 }

@@ -643,3 +643,22 @@ export interface NoticeListDto {
   unread: number
   items: NoticeDto[]
 }
+
+// ---------------------------------------------------------------- chat assistant
+
+export interface ChatTurn {
+  role: 'user' | 'bot'
+  text: string
+}
+
+export interface ChatRequest {
+  message: string
+  history: ChatTurn[]
+}
+
+export interface ChatReply {
+  reply: string
+  /** ai (written by the model from the business's data), kb (taken straight from it) or refused (outside what the assistant covers). */
+  source: 'ai' | 'kb' | 'refused'
+  suggestions: string[]
+}
