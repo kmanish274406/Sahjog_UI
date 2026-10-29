@@ -7,6 +7,7 @@ import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Alert, Badge, Button, DataTable, Input, Modal, Panel } from '@/components/ui'
 import type { Column } from '@/components/ui'
+import { collect, nameProblem, optionalPhoneProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 
@@ -103,6 +104,8 @@ function AddForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('')
   const [skill, setSkill] = useState('')
   const [phone, setPhone] = useState('')
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({ name: nameProblem(name), phone: optionalPhoneProblem(phone) })
   const add = useApiMutation(
     () =>
       api.vendor.addTechnician({
@@ -121,6 +124,7 @@ function AddForm({ onDone }: { onDone: () => void }) {
       className={shared.stackTight}
       onSubmit={(event) => {
         event.preventDefault()
+        if (Object.keys(errors).length > 0) return setShowErrors(true)
         add.mutate(undefined)
       }}
     >
@@ -130,6 +134,7 @@ function AddForm({ onDone }: { onDone: () => void }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         maxLength={80}
+        error={showErrors ? errors.name : undefined}
       />
       <Input
         label="Skill"
@@ -144,13 +149,15 @@ function AddForm({ onDone }: { onDone: () => void }) {
         inputMode="numeric"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
+        error={showErrors ? errors.phone : undefined}
+        maxLength={20}
       />
       {add.isError && <Alert tone="danger">{add.error.message}</Alert>}
       <div className={shared.formActions}>
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button type="submit" loading={add.isPending} disabled={name.trim().length < 2}>
+        <Button type="submit" loading={add.isPending}>
           Add technician
         </Button>
       </div>

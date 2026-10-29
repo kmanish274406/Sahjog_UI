@@ -18,6 +18,7 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
+import { collect, nameProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
@@ -119,6 +120,12 @@ function RoleForm({
   const [description, setDescription] = useState(isNew ? '' : row.description)
   const [active, setActive] = useState(isNew ? true : row.active)
   const [granted, setGranted] = useState(() => new Set(isNew ? [] : row.accessIds))
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    name: nameProblem(name, 'role name', 60),
+    description:
+      description.length > 200 ? 'The description can be at most 200 characters.' : undefined,
+  })
   const save = useApiMutation(
     () => {
       const body = {
@@ -137,6 +144,7 @@ function RoleForm({
         className={shared.stackTight}
         onSubmit={(e) => {
           e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
           save.mutate(undefined)
         }}
       >
@@ -146,11 +154,15 @@ function RoleForm({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
+            error={showErrors ? errors.name : undefined}
+            maxLength={60}
           />
           <Input
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            error={showErrors ? errors.description : undefined}
+            maxLength={200}
           />
           <Checkbox label="Active" checked={active} onChange={(e) => setActive(e.target.checked)} />
         </div>
@@ -162,7 +174,7 @@ function RoleForm({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" loading={save.isPending} disabled={name.trim().length < 2}>
+          <Button type="submit" loading={save.isPending}>
             Save role
           </Button>
         </FormActions>

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { useServices } from '@/features/catalog/hooks/useCatalog'
+import { amountProblem, collect, requiredChoiceProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency } from '@/utils/format'
@@ -173,6 +174,11 @@ function OfferForm({
   const [isFixed, setIsFixed] = useState(offer?.isFixed ?? true)
   const [active, setActive] = useState(offer?.active ?? true)
   const [image, setImage] = useState<string | null>(offer?.image ?? null)
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    serviceItemId: requiredChoiceProblem(serviceItemId, 'service'),
+    price: amountProblem(price, 'price'),
+  })
 
   const upload = useApiMutation((file: File) => api.uploads.image(file), {
     meta: { inline: true },
@@ -204,6 +210,7 @@ function OfferForm({
       className={shared.stackTight}
       onSubmit={(event) => {
         event.preventDefault()
+        if (Object.keys(errors).length > 0) return setShowErrors(true)
         save.mutate(undefined)
       }}
     >
@@ -214,6 +221,7 @@ function OfferForm({
         disabled={offer !== null}
         value={serviceItemId}
         onChange={(e) => setServiceItemId(e.target.value)}
+        error={showErrors ? errors.serviceItemId : undefined}
         options={options}
       />
       <Input
@@ -224,6 +232,7 @@ function OfferForm({
         step="1"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
+        error={showErrors ? errors.price : undefined}
         hint={
           chosen
             ? `The platform's suggested price is ${formatCurrency(chosen.basePrice)}.`
@@ -283,11 +292,7 @@ function OfferForm({
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          loading={save.isPending}
-          disabled={!serviceItemId || !(Number(price) > 0)}
-        >
+        <Button type="submit" loading={save.isPending}>
           Save service
         </Button>
       </div>

@@ -17,6 +17,13 @@ import {
 } from '@/components/ui'
 import type { Column } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
+import {
+  collect,
+  emailProblem,
+  nameProblem,
+  passwordProblem,
+  requiredChoiceProblem,
+} from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
@@ -130,16 +137,21 @@ function StaffForm({
     },
     { meta: { inline: true, success: 'Staff member saved.' }, onSuccess: onClose },
   )
-  const valid =
-    name.trim().length >= 2 &&
-    roleId !== '' &&
-    (!isNew || (email.includes('@') && password.length >= 6))
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    name: nameProblem(name, 'full name'),
+    email: isNew ? emailProblem(email) : undefined,
+    roleId: requiredChoiceProblem(roleId, 'role'),
+    password: passwordProblem(password, isNew),
+  })
+  const problem = (key: keyof typeof errors) => (showErrors ? errors[key] : undefined)
   return (
     <Modal open title={isNew ? 'Add staff' : `Edit ${row.name}`} onClose={onClose}>
       <form
         className={shared.stackTight}
         onSubmit={(e) => {
           e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
           save.mutate(undefined)
         }}
       >
@@ -149,6 +161,8 @@ function StaffForm({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
+            error={problem('name')}
+            maxLength={80}
           />
           <Input
             label="Email"
@@ -157,6 +171,8 @@ function StaffForm({
             disabled={!isNew}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={problem('email')}
+            maxLength={150}
           />
           <Select
             label="Role"
@@ -165,6 +181,7 @@ function StaffForm({
             options={roles.map((r) => ({ value: String(r.id), label: r.name }))}
             value={roleId}
             onChange={(e) => setRoleId(e.target.value)}
+            error={problem('roleId')}
           />
           <Input
             label={isNew ? 'Password' : 'New password'}
@@ -174,6 +191,7 @@ function StaffForm({
             placeholder={isNew ? 'At least 6 characters' : 'Leave empty to keep it'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            error={problem('password')}
           />
         </div>
         {save.isError && <Alert tone="danger">{save.error.message}</Alert>}
@@ -181,7 +199,7 @@ function StaffForm({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" loading={save.isPending} disabled={!valid}>
+          <Button type="submit" loading={save.isPending}>
             Save
           </Button>
         </FormActions>

@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Alert, Button, Input, Panel, Tabs, Toggle } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
 import { CANCEL_STAGE_LABELS } from '@/domain/constants'
+import { collect, feeProblem, optionalPercentProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { useLookups } from '@/hooks/useLookups'
 import { usePermission } from '@/hooks/usePermission'
@@ -114,6 +115,14 @@ function SaveRow({
 function FeesForm({ settings }: { settings: SettingsDto }) {
   const [fee, setFee] = useState(String(settings.platformFee))
   const [commission, setCommission] = useState(String(settings.defaultCommission))
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    fee: feeProblem(fee, 'platform fee', 10_000),
+    commission:
+      commission.trim() === ''
+        ? 'Enter the default commission.'
+        : optionalPercentProblem(commission),
+  })
   const save = useApiMutation(
     () =>
       api.admin.updateSettings({ platformFee: Number(fee), defaultCommission: Number(commission) }),
@@ -126,17 +135,19 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
       <form
         onSubmit={(e) => {
           e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
           save.mutate(undefined)
         }}
       >
         <div className={shared.formGrid}>
           <Input
-            label="Platform fee per booking (â‚¹)"
+            label="Platform fee per booking (₹)"
             type="number"
             min={0}
             step="1"
             value={fee}
             onChange={(e) => setFee(e.target.value)}
+            error={showErrors ? errors.fee : undefined}
             hint="Added to every booking and paid by the customer."
           />
           <Input
@@ -147,14 +158,11 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
             step="0.5"
             value={commission}
             onChange={(e) => setCommission(e.target.value)}
+            error={showErrors ? errors.commission : undefined}
             hint="Taken from the vendor on a completed job, unless a service has its own."
           />
         </div>
-        <SaveRow
-          pending={save.isPending}
-          error={save.error?.message}
-          disabled={fee === '' || commission === ''}
-        />
+        <SaveRow pending={save.isPending} error={save.error?.message} />
       </form>
     </Panel>
   )
@@ -243,6 +251,17 @@ function PaymentMethodsForm({ settings }: { settings: SettingsDto }) {
 function CouponForm({ settings }: { settings: SettingsDto }) {
   const [code, setCode] = useState(settings.couponCode)
   const [amount, setAmount] = useState(String(settings.couponAmount))
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    code:
+      code.trim() !== '' && !/^[A-Z0-9_-]{3,30}$/.test(code.trim())
+        ? 'Use 3 to 30 letters, digits, - or _ (no spaces), or leave empty to switch it off.'
+        : undefined,
+    amount:
+      code.trim() !== '' && !(Number(amount) > 0)
+        ? 'Enter a discount above 0, or clear the code.'
+        : feeProblem(amount, 'discount', 100_000),
+  })
   const save = useApiMutation(
     () => api.admin.updateSettings({ couponCode: code.trim(), couponAmount: Number(amount) }),
     {
@@ -257,6 +276,7 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
       <form
         onSubmit={(e) => {
           e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
           save.mutate(undefined)
         }}
       >
@@ -266,14 +286,16 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             maxLength={30}
+            error={showErrors ? errors.code : undefined}
           />
           <Input
-            label="Discount (â‚¹)"
+            label="Discount (₹)"
             type="number"
             min={0}
             step="1"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
+            error={showErrors ? errors.amount : undefined}
           />
         </div>
         <SaveRow pending={save.isPending} error={save.error?.message} />
@@ -294,6 +316,10 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
   const [prices, setPrices] = useState(
     Object.fromEntries(plans.map((p) => [p.id, String(p.price)])),
   )
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect(
+    Object.fromEntries(plans.map((p) => [p.id, feeProblem(prices[p.id] ?? '', 'fee', 100_000)])),
+  )
   const save = useApiMutation(
     () => api.admin.updatePlans(plans.map((p) => ({ planId: p.id, price: Number(prices[p.id]) }))),
     {
@@ -305,6 +331,7 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
       <form
         onSubmit={(e) => {
           e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
           save.mutate(undefined)
         }}
       >
@@ -323,6 +350,7 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
                     step="1"
                     value={prices[p.id]}
                     onChange={(e) => setPrices({ ...prices, [p.id]: e.target.value })}
+                    error={showErrors ? errors[p.id] : undefined}
                     hint={p.save || undefined}
                   />
                 ))}
@@ -333,7 +361,6 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
           pending={save.isPending}
           error={save.error?.message}
           label="Save subscription fees"
-          disabled={Object.values(prices).some((v) => v === '')}
         />
       </form>
     </Panel>

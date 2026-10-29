@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button, Input, Modal, Panel, Textarea } from '@/components/ui'
+import { addressProblem, collect, nameProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 import { PlaceSearch } from '../components/PlaceSearch'
@@ -109,6 +110,8 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
   const existing = editing === 'new' ? null : editing
   const [label, setLabel] = useState(existing?.label ?? 'Home')
   const [text, setText] = useState(existing?.text ?? '')
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({ label: nameProblem(label, 'label', 40), text: addressProblem(text) })
   const save = useApiMutation(
     () =>
       existing
@@ -122,6 +125,7 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
       className={shared.stackTight}
       onSubmit={(event) => {
         event.preventDefault()
+        if (Object.keys(errors).length > 0) return setShowErrors(true)
         save.mutate(undefined)
       }}
     >
@@ -133,6 +137,7 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         maxLength={40}
+        error={showErrors ? errors.label : undefined}
       />
       <Textarea
         label="Full address"
@@ -142,6 +147,7 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
         value={text}
         onChange={(e) => setText(e.target.value)}
         maxLength={300}
+        error={showErrors ? errors.text : undefined}
       />
       {save.isError && (
         <p role="alert" style={{ color: 'var(--color-danger)' }}>
@@ -152,11 +158,7 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          loading={save.isPending}
-          disabled={!label.trim() || text.trim().length < 8}
-        >
+        <Button type="submit" loading={save.isPending}>
           Save address
         </Button>
       </div>
