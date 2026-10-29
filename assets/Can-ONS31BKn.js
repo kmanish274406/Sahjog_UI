@@ -1,1 +1,0 @@
-import{L as e}from"./useApi-CgedtL-7.js";import{t}from"./index-D53z1GQA.js";var n=e();function r({permission:e,children:r}){return t()(e)?(0,n.jsx)(n.Fragment,{children:r}):null}export{r as t};

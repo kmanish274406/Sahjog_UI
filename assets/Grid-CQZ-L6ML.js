@@ -1,1 +1,0 @@
-import{F as e,L as t}from"./useApi-CgedtL-7.js";var n={grid:`_grid_1wxc3_1`,stats:`_stats_1wxc3_8`,two:`_two_1wxc3_12`,three:`_three_1wxc3_16`,mainside:`_mainside_1wxc3_20`},r=t();function i({variant:t,children:i}){return(0,r.jsx)(`div`,{className:e(n.grid,n[t.replace(`-`,``)]),children:i})}export{i as t};
