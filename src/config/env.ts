@@ -1,7 +1,7 @@
 export const env = {
   appName: 'Sahjog',
   tagline: 'Har Kaam Ka Saathi',
-  apiUrl: (import.meta.env.VITE_API_URL ?? 'http://localhost:5191').replace(/\/+$/, ''),
+  apiUrl: (import.meta.env.VITE_API_URL ?? 'http://sahjog.runasp.net').replace(/\/+$/, ''),
   /** The business (client) this site belongs to. People can change it on the sign-in page. */
   defaultTenant: import.meta.env.VITE_TENANT ?? '1',
   /** Signed out after this long without a click or key press. Matches the API's refresh-token idle limit. */
