@@ -229,6 +229,8 @@ export interface ProfileDto {
   planExpiry: string | null
   subscriptionActive: boolean
   coveredByVendor: boolean
+  technicianLimit?: number | null
+  technicianCount?: number | null
 }
 
 export interface UpdateProfileRequest {
@@ -288,6 +290,7 @@ export interface VendorRegisterRequest {
   owner: string
   phone: string
   email: string
+  password: string
   gst?: string
   address: string
   categories: string[]
@@ -296,10 +299,25 @@ export interface VendorRegisterRequest {
 export interface TechnicianRegisterRequest {
   name: string
   phone: string
+  email: string
+  password: string
   skills: string[]
   experience: number
   aadhaar?: string
   address: string
+}
+
+export interface CreateTenantAdminRequest {
+  name: string
+  email: string
+  password: string
+}
+
+export interface CreatedTenantAdminDto {
+  id: number
+  name: string
+  email: string
+  createdAt: string
 }
 
 // ---------------------------------------------------------------- catalogue
@@ -369,6 +387,8 @@ export interface SettingsDto {
   paymentProvider: string
   couponCode: string
   couponAmount: number
+  referrerReward: number
+  refereeReward: number
   features: Features
 }
 
@@ -379,6 +399,8 @@ export interface UpdateSettingsRequest {
   paymentMethods?: Record<string, boolean>
   couponCode?: string
   couponAmount?: number
+  referrerReward?: number
+  refereeReward?: number
 }
 
 export interface ContentDto {
@@ -447,11 +469,13 @@ export interface AddressDto {
   id: number
   label: string
   text: string
+  landmark?: string | null
 }
 
 export interface SaveAddressRequest {
   label: string
   text: string
+  landmark?: string | null
 }
 
 export interface PlaceSuggestionDto {
@@ -471,6 +495,18 @@ export interface CouponResult {
   valid: boolean
   discount: number
   message: string
+}
+
+export interface ReferralDto {
+  code: string
+  referrerReward: number
+  refereeReward: number
+  joined: number
+  rewarded: number
+  earned: number
+  referredBy: string
+  canApply: boolean
+  shareText: string
 }
 
 // ---------------------------------------------------------------- bookings
@@ -505,6 +541,8 @@ export interface BookingDto {
   fee: number
   discount: number
   total: number
+  taxAmount?: number
+  taxRate?: number
   cancelFee: number
   commission: number
   techEarning: number
@@ -546,7 +584,6 @@ export interface VendorServiceDto {
 }
 
 export interface SaveVendorServiceRequest {
-  serviceItemId?: number
   name?: string
   description?: string
   price?: number
@@ -559,6 +596,7 @@ export interface StaffDto {
   id: number
   role: string
   name: string
+  email: string
   skill: string
   emoji: string
   phone: string
@@ -567,6 +605,8 @@ export interface StaffDto {
   plan: string
   expiry: string
   subscriptionActive: boolean
+  approvalStatus?: 'pending' | 'approved' | 'rejected'
+  available: boolean
 }
 
 export interface TransactionDto {

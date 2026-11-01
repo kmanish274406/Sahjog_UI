@@ -1,4 +1,5 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '@/api'
 import { QueryState } from '@/components/feedback/QueryState'
@@ -31,7 +32,13 @@ export function CustomerHome() {
   const settings = useSettings()
   const bookings = useApiQuery(['bookings'], api.bookings.list)
 
-  const banner = content.row('banner', 'main')
+  const banners = content
+    .list('banner')
+    .filter((row) => row.active && row.code !== 'button')
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+  const [activeBanner, setActiveBanner] = useState(0)
+  const bannerIndex = banners.length ? activeBanner % banners.length : 0
+  const banner = banners[bannerIndex]
   const popular = [...(services.data ?? [])]
     .sort((a, b) => b.providers - a.providers || b.reviews - a.reviews)
     .slice(0, 6)
@@ -65,21 +72,71 @@ export function CustomerHome() {
 
   return (
     <div className={shared.stack}>
-      <section className={styles.hero}>
-        <div>
+      <section
+        className={styles.hero}
+        role="region"
+        aria-label="Featured services"
+        aria-roledescription="carousel"
+        tabIndex={banners.length > 1 ? 0 : undefined}
+        onKeyDown={(event) => {
+          if (banners.length < 2) return
+          if (event.key === 'ArrowRight') {
+            event.preventDefault()
+            setActiveBanner((bannerIndex + 1) % banners.length)
+          } else if (event.key === 'ArrowLeft') {
+            event.preventDefault()
+            setActiveBanner((bannerIndex - 1 + banners.length) % banners.length)
+          }
+        }}
+      >
+        <div className={styles.heroCopy}>
           <p className={styles.greeting}>
             {fill(content.text('app', 'greeting', 'Hello, {name}'), { name: firstName })}
           </p>
-          <h1 className={styles.heroTitle} style={{ whiteSpace: 'pre-line' }}>
-            {banner?.title ??
-              content.text('app', 'tagline', 'Trusted professionals for every job at home')}
-          </h1>
-          <p className={styles.heroText}>{banner?.text || content.text('app', 'ask')}</p>
+          <div className={styles.slide} aria-live="polite" aria-atomic="true">
+            <h1 className={styles.heroTitle} style={{ whiteSpace: 'pre-line' }}>
+              {banner?.title ??
+                content.text('app', 'tagline', 'Trusted professionals for every job at home')}
+            </h1>
+            <p className={styles.heroText}>{banner?.text || content.text('app', 'ask')}</p>
+          </div>
           <Link to={ROUTES.services}>
             <Button variant="secondary">
               {content.text('banner', 'button', 'Book a service')}
             </Button>
           </Link>
+          {banners.length > 1 && (
+            <div className={styles.carouselControls} role="group" aria-label="Banner controls">
+              <button
+                type="button"
+                className={styles.carouselArrow}
+                aria-label="Previous banner"
+                onClick={() => setActiveBanner((bannerIndex - 1 + banners.length) % banners.length)}
+              >
+                <ArrowLeft size={16} aria-hidden="true" />
+              </button>
+              <div className={styles.carouselDots}>
+                {banners.map((row, index) => (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={styles.carouselDot}
+                    aria-label={`Show banner ${index + 1} of ${banners.length}`}
+                    aria-pressed={index === bannerIndex}
+                    onClick={() => setActiveBanner(index)}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className={styles.carouselArrow}
+                aria-label="Next banner"
+                onClick={() => setActiveBanner((bannerIndex + 1) % banners.length)}
+              >
+                <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
         {showOffer && offer && (
           <div className={styles.offer}>

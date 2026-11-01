@@ -14,6 +14,7 @@ export function nameProblem(value: string, label = 'name', max = 80): Problem {
 
 export function emailProblem(value: string): Problem {
   if (value.trim() === '') return 'Enter an email address.'
+  if (value.trim().length > 200) return 'The email address can be at most 200 characters.'
   if (!isEmail(value)) return 'Enter a valid email address.'
   return undefined
 }
@@ -22,6 +23,12 @@ export function emailProblem(value: string): Problem {
 export function optionalPhoneProblem(value: string): Problem {
   if (value.trim() !== '' && !normalisePhone(value))
     return 'Enter a valid 10-digit mobile number, or leave it empty.'
+  return undefined
+}
+
+export function phoneProblem(value: string): Problem {
+  if (value.trim() === '') return 'Enter a mobile number.'
+  if (!normalisePhone(value)) return 'Enter a valid 10-digit mobile number.'
   return undefined
 }
 
@@ -36,6 +43,11 @@ export function addressProblem(value: string): Problem {
   const v = value.trim()
   if (v.length < 8) return 'Enter a fuller address with house number, area and city.'
   if (v.length > 300) return 'The address can be at most 300 characters.'
+  return undefined
+}
+
+export function landmarkProblem(value: string): Problem {
+  if (value.trim().length > 120) return 'The landmark can be at most 120 characters.'
   return undefined
 }
 
@@ -64,6 +76,21 @@ export function optionalPercentProblem(value: string, label = 'percentage'): Pro
   if (value.trim() === '') return undefined
   const n = Number(value)
   if (!Number.isFinite(n) || n < 0 || n > 100) return `The ${label} must be between 0 and 100.`
+  if (!/^\d+(\.\d{1,2})?$/.test(value.trim())) return `Use at most two decimal places.`
+  return undefined
+}
+
+export function integerProblem(
+  value: string,
+  label: string,
+  min: number,
+  max: number,
+  required = true,
+): Problem {
+  if (value.trim() === '') return required ? `Enter the ${label}.` : undefined
+  const n = Number(value)
+  if (!/^-?\d+$/.test(value.trim()) || !Number.isInteger(n) || n < min || n > max)
+    return `Enter the ${label} as a whole number from ${min} to ${max}.`
   return undefined
 }
 

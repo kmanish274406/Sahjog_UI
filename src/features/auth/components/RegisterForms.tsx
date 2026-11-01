@@ -2,10 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { api } from '@/api'
 import type { AuthResult } from '@/api/types'
-import { Button, Input, Textarea } from '@/components/ui'
+import { Button, IndianPhoneInput, Input, Textarea } from '@/components/ui'
 import { Checkbox } from '@/components/ui'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
-import { normalisePhone } from '@/domain/validators'
+import { normaliseEmail, normaliseGstin, normalisePhone } from '@/domain/validators'
 import { technicianRegisterSchema, vendorRegisterSchema } from '../schemas/login.schema'
 import type { TechnicianRegisterValues, VendorRegisterValues } from '../schemas/login.schema'
 import styles from './LoginForm.module.css'
@@ -47,14 +47,15 @@ function CategoryChecks({
   )
 }
 
-/** A vendor registers their business and is signed in straight away. */
+/** A vendor creates their credentials and is sent to choose a subscription before using the dashboard. */
 export function VendorRegisterForm({ onSignedIn }: { onSignedIn: (result: AuthResult) => void }) {
   const register_ = useApiMutation(
     (v: VendorRegisterValues) =>
       api.auth.vendorRegister({
         ...v,
         phone: normalisePhone(v.phone) ?? v.phone,
-        gst: v.gst || undefined,
+        email: normaliseEmail(v.email),
+        gst: v.gst ? normaliseGstin(v.gst) : undefined,
       }),
     { meta: { inline: true }, onSuccess: onSignedIn },
   )
@@ -87,11 +88,9 @@ export function VendorRegisterForm({ onSignedIn }: { onSignedIn: (result: AuthRe
         error={errors.owner?.message}
         {...register('owner')}
       />
-      <Input
+      <IndianPhoneInput
         label="Mobile number"
         required
-        type="tel"
-        inputMode="numeric"
         error={errors.phone?.message}
         {...register('phone')}
       />
@@ -101,6 +100,14 @@ export function VendorRegisterForm({ onSignedIn }: { onSignedIn: (result: AuthRe
         type="email"
         error={errors.email?.message}
         {...register('email')}
+      />
+      <Input
+        label="Password"
+        required
+        type="password"
+        autoComplete="new-password"
+        error={errors.password?.message}
+        {...register('password')}
       />
       <Input label="GST number" hint="Optional." error={errors.gst?.message} {...register('gst')} />
       <Textarea
@@ -134,7 +141,7 @@ export function VendorRegisterForm({ onSignedIn }: { onSignedIn: (result: AuthRe
   )
 }
 
-/** A technician registers and is signed in straight away. */
+/** An independent technician creates credentials and is sent to choose a subscription. */
 export function TechnicianRegisterForm({
   onSignedIn,
 }: {
@@ -145,7 +152,8 @@ export function TechnicianRegisterForm({
       api.auth.technicianRegister({
         ...v,
         phone: normalisePhone(v.phone) ?? v.phone,
-        aadhaar: v.aadhaar || undefined,
+        email: normaliseEmail(v.email),
+        aadhaar: v.aadhaar?.replace(/\D/g, '') || undefined,
       }),
     { meta: { inline: true }, onSuccess: onSignedIn },
   )
@@ -154,7 +162,7 @@ export function TechnicianRegisterForm({
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<TechnicianRegisterValues>({
     resolver: zodResolver(technicianRegisterSchema),
     defaultValues: { skills: [] as string[], experience: 0 },
   })
@@ -162,7 +170,7 @@ export function TechnicianRegisterForm({
   return (
     <form
       className={styles.form}
-      onSubmit={handleSubmit((values) => register_.mutate(values as TechnicianRegisterValues))}
+      onSubmit={handleSubmit((values) => register_.mutate(values))}
       noValidate
     >
       <Input
@@ -172,13 +180,27 @@ export function TechnicianRegisterForm({
         error={errors.name?.message}
         {...register('name')}
       />
-      <Input
+      <IndianPhoneInput
         label="Mobile number"
         required
-        type="tel"
-        inputMode="numeric"
         error={errors.phone?.message}
         {...register('phone')}
+      />
+      <Input
+        label="Email"
+        required
+        type="email"
+        autoComplete="email"
+        error={errors.email?.message}
+        {...register('email')}
+      />
+      <Input
+        label="Password"
+        required
+        type="password"
+        autoComplete="new-password"
+        error={errors.password?.message}
+        {...register('password')}
       />
       <Controller
         control={control}

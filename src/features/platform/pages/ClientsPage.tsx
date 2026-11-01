@@ -17,6 +17,7 @@ import {
   DescriptionList,
   FormActions,
   FormSection,
+  IndianPhoneInput,
   Input,
   Modal,
   Panel,
@@ -30,7 +31,8 @@ import { PERMISSIONS } from '@/config/permissions'
 import { clientPath } from '@/config/routes'
 import { Can } from '@/hooks/Can'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
-import { isEmail, normalisePhone } from '@/domain/validators'
+import { emailProblem, nameProblem, phoneProblem } from '@/domain/form-rules'
+import { normaliseEmail, normalisePhone } from '@/domain/validators'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 
@@ -186,7 +188,11 @@ export default function ClientsPage() {
             <EmptyState
               icon={Landmark}
               title="No clients yet"
-              action={<Button onClick={() => setCreating(true)}>Create the first client</Button>}
+              action={
+                <Can permission={PERMISSIONS.clientAdd}>
+                  <Button onClick={() => setCreating(true)}>Create the first client</Button>
+                </Can>
+              }
             >
               A client gets its own catalogue, plans, settings and an admin login.
             </EmptyState>
@@ -263,7 +269,7 @@ function CreateForm({
         name: form.name.trim(),
         code: form.code.trim().toLowerCase(),
         ownerName: form.ownerName.trim(),
-        ownerEmail: form.ownerEmail.trim(),
+        ownerEmail: normaliseEmail(form.ownerEmail),
         ownerPhone: normalisePhone(form.ownerPhone) ?? form.ownerPhone.trim(),
         demoData,
         adminPassword: form.adminPassword || undefined,
@@ -279,12 +285,16 @@ function CreateForm({
     },
   )
 
-  const valid =
-    form.name.trim().length >= 2 &&
-    /^[a-z0-9-]{2,30}$/.test(form.code.trim().toLowerCase()) &&
-    form.ownerName.trim().length >= 2 &&
-    isEmail(form.ownerEmail) &&
-    normalisePhone(form.ownerPhone) !== null
+  const errors = {
+    name: nameProblem(form.name, 'business name', 80),
+    code: /^[a-z0-9-]{2,30}$/.test(form.code.trim().toLowerCase())
+      ? undefined
+      : 'Use 2 to 30 lowercase letters, numbers or hyphens.',
+    ownerName: nameProblem(form.ownerName, 'owner name'),
+    ownerEmail: emailProblem(form.ownerEmail),
+    ownerPhone: phoneProblem(form.ownerPhone),
+  }
+  const valid = Object.values(errors).every((error) => error === undefined)
 
   return (
     <form
@@ -301,6 +311,7 @@ function CreateForm({
           value={form.name}
           onChange={set('name')}
           maxLength={80}
+          error={errors.name}
         />
         <Input
           label="Business code"
@@ -310,6 +321,7 @@ function CreateForm({
           value={form.code}
           onChange={set('code')}
           maxLength={30}
+          error={errors.code}
         />
       </FormSection>
       <FormSection stacked title="Owner">
@@ -319,15 +331,15 @@ function CreateForm({
           placeholder="Full name"
           value={form.ownerName}
           onChange={set('ownerName')}
+          error={errors.ownerName}
         />
-        <Input
+        <IndianPhoneInput
           label="Owner mobile"
           required
-          type="tel"
-          inputMode="numeric"
           placeholder="98765 43210"
           value={form.ownerPhone}
           onChange={set('ownerPhone')}
+          error={errors.ownerPhone}
         />
         <Input
           className={fullRow}
@@ -337,6 +349,7 @@ function CreateForm({
           placeholder="owner@example.com"
           value={form.ownerEmail}
           onChange={set('ownerEmail')}
+          error={errors.ownerEmail}
         />
       </FormSection>
       <FormSection stacked title="Setup">

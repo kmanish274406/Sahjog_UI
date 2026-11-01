@@ -16,7 +16,7 @@ import { ApiError } from '@/lib/api-error'
 import { toast } from '@/store/toast.store'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency, toIsoDay } from '@/utils/format'
-import { cartSubtotal, useCartStore } from '../store/cart.store'
+import { useCartStore } from '../store/cart.store'
 import styles from './CheckoutPage.module.css'
 
 const NEW_ADDRESS = 'new'
@@ -35,6 +35,7 @@ export default function CheckoutPage() {
 
   const [addressId, setAddressId] = useState<string>('')
   const [newText, setNewText] = useState('')
+  const [newLandmark, setNewLandmark] = useState('')
   const [newLabel, setNewLabel] = useState('Home')
   const [saveNew, setSaveNew] = useState(true)
   const [couponCode, setCouponCode] = useState('')
@@ -61,7 +62,11 @@ export default function CheckoutPage() {
       if (!settings.data) throw new ApiError('Settings are still loading.')
       const online = settings.data.onlinePayments && method !== 'Wallet'
       if (usingNew && saveNew)
-        await api.customer.addAddress({ label: newLabel.trim() || 'Home', text: addressText })
+        await api.customer.addAddress({
+          label: newLabel.trim() || 'Home',
+          text: addressText,
+          landmark: newLandmark.trim(),
+        })
 
       const placed: string[] = []
       for (const [index, item] of items.entries()) {
@@ -118,9 +123,7 @@ export default function CheckoutPage() {
     return <Navigate to={ROUTES.cart} replace />
 
   const fee = settings.data?.platformFee ?? 0
-  const subtotal = cartSubtotal(items)
   const discount = coupon?.valid ? coupon.discount : 0
-  const total = Math.max(0, subtotal + fee * items.length - discount)
 
   const methods = Object.entries(settings.data?.paymentMethods ?? {})
     .filter(([, on]) => on)
@@ -201,13 +204,18 @@ export default function CheckoutPage() {
                     options={[
                       ...(addresses.data ?? []).map((a) => ({
                         value: String(a.id),
-                        label: `${a.label}: ${a.text}`,
+                        label: `${a.label}: ${a.text}${a.landmark ? ` · ${a.landmark}` : ''}`,
                       })),
                       { value: NEW_ADDRESS, label: 'Use a different address…' },
                     ]}
                   />
                 )}
-                {selected && <p className={shared.muted}>{selected.text}</p>}
+                {selected && (
+                  <p className={shared.muted}>
+                    {selected.text}
+                    {selected.landmark ? ` · Landmark: ${selected.landmark}` : ''}
+                  </p>
+                )}
                 {usingNew && (
                   <>
                     <PlaceSearch onPick={setNewText} />
@@ -219,6 +227,13 @@ export default function CheckoutPage() {
                       value={newText}
                       onChange={(e) => setNewText(e.target.value)}
                       maxLength={300}
+                    />
+                    <Input
+                      label="Landmark"
+                      hint="Optional. For example, opposite the community park."
+                      value={newLandmark}
+                      onChange={(e) => setNewLandmark(e.target.value)}
+                      maxLength={120}
                     />
                     <div className={shared.row}>
                       <Checkbox
@@ -279,41 +294,31 @@ export default function CheckoutPage() {
                 <div role="radiogroup" aria-label="Payment method" className={styles.methods}>
                   {methods.map((name) => {
                     const row = content.row('payment', name)
-                    const insufficient = name === 'Wallet' && wallet < total
                     return (
                       <label
                         key={name}
-                        className={clsx(
-                          styles.method,
-                          method === name && styles.methodOn,
-                          insufficient && styles.methodOff,
-                        )}
+                        className={clsx(styles.method, method === name && styles.methodOn)}
                       >
                         <input
                           type="radio"
                           name="method"
                           value={name}
                           checked={method === name}
-                          disabled={insufficient}
                           onChange={() => setMethod(name)}
                         />
                         <span>
                           <strong>{row?.title || name}</strong>
-                          <span className={shared.muted}>
-                            {' '}
-                            {fill(row?.text ?? '', { balance: formatCurrency(wallet) })}
-                            {insufficient && ' (not enough balance)'}
-                          </span>
+                          {name === 'Wallet' && (
+                            <span className={shared.muted}>
+                              {' '}
+                              · Balance {formatCurrency(wallet)}
+                            </span>
+                          )}
                         </span>
                       </label>
                     )
                   })}
                 </div>
-                {settings.data?.onlinePayments && settings.data.paymentProvider === 'Test' && (
-                  <p className={`${shared.muted} ${shared.small}`}>
-                    {content.text('app', 'test-payment')}
-                  </p>
-                )}
               </div>
             </Panel>
           </div>
@@ -340,10 +345,6 @@ export default function CheckoutPage() {
                       <td className={shared.positive}>− {formatCurrency(discount)}</td>
                     </tr>
                   )}
-                  <tr className={shared.total}>
-                    <td>Total</td>
-                    <td>{formatCurrency(total)}</td>
-                  </tr>
                 </tbody>
               </table>
               {place.isError && (

@@ -31,6 +31,7 @@ import {
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { PERMISSIONS } from '@/config/permissions'
 import { Can } from '@/hooks/Can'
+import { usePermission } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency, formatPercent } from '@/utils/format'
 
@@ -42,8 +43,20 @@ export default function CatalogPage() {
   const [editingService, setEditingService] = useState<ServiceDto | 'new' | null>(null)
   const [editingCategory, setEditingCategory] = useState<CategoryDto | 'new' | null>(null)
 
-  const categories = useApiQuery(['admin', 'categories'], api.admin.categories)
-  const services = useApiQuery(['admin', 'services'], () => api.admin.services())
+  const can = usePermission()
+  const canViewCategories = can(PERMISSIONS.categoryView)
+  const canViewServices = can(PERMISSIONS.serviceView)
+  const tabs = [
+    ...(canViewServices ? [{ id: 'services' as const, label: 'Services' }] : []),
+    ...(canViewCategories ? [{ id: 'categories' as const, label: 'Categories' }] : []),
+  ]
+  const currentTab = tabs.some((item) => item.id === tab) ? tab : (tabs[0]?.id ?? null)
+  const categories = useApiQuery(['admin', 'categories'], api.admin.categories, {
+    enabled: canViewCategories || canViewServices,
+  })
+  const services = useApiQuery(['admin', 'services'], () => api.admin.services(), {
+    enabled: canViewServices,
+  })
   const toggleService = useApiMutation(
     (s: ServiceDto) => api.admin.updateService(s.id, { active: !s.active }),
     { meta: { success: 'Saved.' } },
@@ -82,12 +95,14 @@ export default function CatalogPage() {
       key: 'active',
       header: 'On',
       render: (s) => (
-        <Checkbox
-          label={s.active ? 'Yes' : 'Off'}
-          checked={s.active}
-          disabled={toggleService.isPending}
-          onChange={() => toggleService.mutate(s)}
-        />
+        <Can permission={PERMISSIONS.serviceEdit}>
+          <Checkbox
+            label={s.active ? 'Yes' : 'Off'}
+            checked={s.active}
+            disabled={toggleService.isPending}
+            onChange={() => toggleService.mutate(s)}
+          />
+        </Can>
       ),
     },
     {
@@ -138,12 +153,14 @@ export default function CatalogPage() {
       key: 'active',
       header: 'On',
       render: (c) => (
-        <Checkbox
-          label={c.active ? 'Yes' : 'Off'}
-          checked={c.active}
-          disabled={toggleCategory.isPending}
-          onChange={() => toggleCategory.mutate(c)}
-        />
+        <Can permission={PERMISSIONS.categoryEdit}>
+          <Checkbox
+            label={c.active ? 'Yes' : 'Off'}
+            checked={c.active}
+            disabled={toggleCategory.isPending}
+            onChange={() => toggleCategory.mutate(c)}
+          />
+        </Can>
       ),
     },
     {
@@ -175,32 +192,26 @@ export default function CatalogPage() {
         title="Categories & services"
         description="What customers can book. Switch an item off to hide it from the app."
         actions={
-          tab === 'services' ? (
+          currentTab === 'services' ? (
             <Can permission={PERMISSIONS.serviceAdd}>
               <Button onClick={() => setEditingService('new')}>
                 <Plus size={16} aria-hidden="true" /> Add service
               </Button>
             </Can>
-          ) : (
+          ) : currentTab === 'categories' ? (
             <Can permission={PERMISSIONS.categoryAdd}>
               <Button onClick={() => setEditingCategory('new')}>
                 <Plus size={16} aria-hidden="true" /> Add category
               </Button>
             </Can>
-          )
+          ) : undefined
         }
       />
       <Toolbar>
-        <Tabs
-          items={[
-            { id: 'services', label: 'Services' },
-            { id: 'categories', label: 'Categories' },
-          ]}
-          active={tab}
-          onChange={setTab}
-          label="Catalogue"
-        />
-        {tab === 'services' && (
+        {tabs.length > 0 && (
+          <Tabs items={tabs} active={currentTab!} onChange={setTab} label="Catalogue" />
+        )}
+        {currentTab === 'services' && (
           <SearchInput
             label="Search services"
             placeholder="Search services"
@@ -209,7 +220,9 @@ export default function CatalogPage() {
           />
         )}
       </Toolbar>
-      {tab === 'services' ? (
+      {tabs.length === 0 ? (
+        <Alert tone="info">You do not have permission to view this catalogue.</Alert>
+      ) : currentTab === 'services' ? (
         <QueryState isLoading={services.isLoading} error={services.error}>
           <Panel flush>
             <DataTable

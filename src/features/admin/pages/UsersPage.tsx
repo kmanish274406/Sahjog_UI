@@ -35,9 +35,18 @@ export default function UsersPage() {
       meta: { success: 'Account updated.' },
     },
   )
+  const setApproval = useApiMutation(
+    (input: { id: number; approved: boolean }) =>
+      api.admin.setUserApproval(input.id, input.approved),
+    {
+      meta: {
+        success: 'Account review saved.',
+      },
+    },
+  )
 
   const rows = (users.data ?? []).filter((u) =>
-    `${u.name} ${u.skill} ${u.phone}`.toLowerCase().includes(term.trim().toLowerCase()),
+    `${u.name} ${u.skill} ${u.phone} ${u.email}`.toLowerCase().includes(term.trim().toLowerCase()),
   )
 
   const columns: Column<StaffDto>[] = [
@@ -75,6 +84,27 @@ export default function UsersPage() {
       ),
     },
     {
+      key: 'approval',
+      header: 'Review',
+      render: (u) => {
+        const status = u.approvalStatus
+        const tone =
+          status === 'approved'
+            ? 'success'
+            : status === 'rejected'
+              ? 'danger'
+              : status === 'pending'
+                ? 'warning'
+                : 'neutral'
+        const label = status
+          ? status === 'pending'
+            ? 'Pending approval'
+            : status[0]!.toUpperCase() + status.slice(1)
+          : 'Not provided'
+        return <Badge tone={tone}>{label}</Badge>
+      },
+    },
+    {
       key: 'actions',
       header: '',
       align: 'right',
@@ -86,23 +116,44 @@ export default function UsersPage() {
             </Button>
           </Can>
           <Can permission={PERMISSIONS.userEdit}>
-            <Button
-              size="sm"
-              variant={u.active ? 'danger' : 'primary'}
-              disabled={setActive.isPending}
-              onClick={() => {
-                if (
-                  !u.active ||
-                  window.confirm(
-                    `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
-                  )
-                ) {
-                  setActive.mutate({ id: u.id, active: !u.active })
-                }
-              }}
-            >
-              {u.active ? 'Disable' : 'Enable'}
-            </Button>
+            <>
+              {u.approvalStatus === 'pending' && (
+                <>
+                  <Button
+                    size="sm"
+                    disabled={setApproval.isPending}
+                    onClick={() => setApproval.mutate({ id: u.id, approved: true })}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={setApproval.isPending}
+                    onClick={() => setApproval.mutate({ id: u.id, approved: false })}
+                  >
+                    Reject
+                  </Button>
+                </>
+              )}
+              <Button
+                size="sm"
+                variant={u.active ? 'danger' : 'primary'}
+                disabled={setActive.isPending}
+                onClick={() => {
+                  if (
+                    !u.active ||
+                    window.confirm(
+                      `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
+                    )
+                  ) {
+                    setActive.mutate({ id: u.id, active: !u.active })
+                  }
+                }}
+              >
+                {u.active ? 'Disable' : 'Enable'}
+              </Button>
+            </>
           </Can>
         </span>
       ),
@@ -113,7 +164,7 @@ export default function UsersPage() {
     <div className={shared.stack}>
       <PageHeader
         title="Vendors & technicians"
-        description="Switch accounts on or off and extend their subscriptions."
+        description="Pending vendors and independent technicians cannot use the marketplace until an Admin approves them. Review pending accounts, switch accounts on or off and extend subscriptions."
       />
       <Toolbar>
         <Tabs
@@ -133,6 +184,8 @@ export default function UsersPage() {
         />
       </Toolbar>
       <QueryState isLoading={users.isLoading} error={users.error}>
+        {setApproval.isError && <Alert tone="danger">{setApproval.error.message}</Alert>}
+        {setActive.isError && <Alert tone="danger">{setActive.error.message}</Alert>}
         <Panel flush>
           <DataTable
             columns={columns}

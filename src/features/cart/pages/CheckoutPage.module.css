@@ -56,11 +56,6 @@
   background: var(--color-primary-soft);
 }
 
-.methodOff {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 @media (max-width: 1000px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

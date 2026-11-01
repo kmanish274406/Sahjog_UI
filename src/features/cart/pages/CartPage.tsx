@@ -111,14 +111,11 @@ export default function CartPage() {
                 </td>
                 <td>{formatCurrency(fee * items.length)}</td>
               </tr>
-              <tr className={shared.total}>
-                <td>Estimated total</td>
-                <td>{formatCurrency(subtotal + fee * items.length)}</td>
-              </tr>
             </tbody>
           </table>
           <p className={`${shared.muted} ${shared.small}`} style={{ marginTop: 8 }}>
-            The final amount, including any coupon, is confirmed by the server at checkout.
+            GST and the final payable total are calculated by the server and shown in your booking
+            details.
           </p>
           <div className={shared.formActions}>
             <Link to={ROUTES.services}>

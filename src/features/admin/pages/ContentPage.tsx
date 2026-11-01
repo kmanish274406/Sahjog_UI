@@ -73,12 +73,14 @@ export default function ContentPage() {
       key: 'active',
       header: 'Shown',
       render: (c) => (
-        <Checkbox
-          label={c.active ? 'Yes' : 'Off'}
-          checked={c.active}
-          disabled={toggle.isPending}
-          onChange={() => toggle.mutate(c)}
-        />
+        <Can permission={PERMISSIONS.contentEdit}>
+          <Checkbox
+            label={c.active ? 'Yes' : 'Off'}
+            checked={c.active}
+            disabled={toggle.isPending}
+            onChange={() => toggle.mutate(c)}
+          />
+        </Can>
       ),
     },
     {

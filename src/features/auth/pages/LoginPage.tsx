@@ -8,7 +8,7 @@ import { env } from '@/config/env'
 import { ROUTES } from '@/config/routes'
 import { CustomerEmailSignIn } from '../components/CustomerEmailSignIn'
 import { OtpSignIn } from '../components/OtpSignIn'
-import { EmailSignIn, PhoneSignIn } from '../components/PasswordSignIn'
+import { EmailSignIn } from '../components/PasswordSignIn'
 import { TechnicianRegisterForm, VendorRegisterForm } from '../components/RegisterForms'
 import { useAuthStore } from '../store/auth.store'
 import { sessionFromAuth, sessionFromPlatform } from '../utils/session'
@@ -46,6 +46,9 @@ export function LoginPage() {
   const [who, setWho] = useState<Who | null>(null)
   const [customerMode, setCustomerMode] = useState<'otp' | 'email'>('otp')
   const [registering, setRegistering] = useState(false)
+  const [technicianLoginMode, setTechnicianLoginMode] = useState<'password' | 'otp'>(
+    DEMO ? 'otp' : 'password',
+  )
 
   const from = (location.state as LocationState | null)?.from?.pathname
 
@@ -60,7 +63,10 @@ export function LoginPage() {
 
   const signedIn = (result: AuthResult) => {
     setSession(sessionFromAuth(result))
-    navigate(from ?? ROUTES.dashboard, { replace: true })
+    const needsPlan =
+      ['vendor', 'technician'].includes(result.profile.role.toLowerCase()) &&
+      !result.profile.subscriptionActive
+    navigate(needsPlan ? ROUTES.plans : (from ?? ROUTES.dashboard), { replace: true })
   }
   const ownerSignedIn = (result: PlatformAuthResult) => {
     setSession(sessionFromPlatform(result))
@@ -69,6 +75,7 @@ export function LoginPage() {
   const change = (next: Who | null) => {
     setWho(next)
     setRegistering(false)
+    setTechnicianLoginMode(DEMO ? 'otp' : 'password')
   }
 
   if (who === null) {
@@ -142,23 +149,50 @@ export function LoginPage() {
             (registering ? (
               <VendorRegisterForm onSignedIn={signedIn} />
             ) : (
-              <PhoneSignIn
-                signIn={api.auth.vendorLogin}
+              <EmailSignIn
+                signIn={api.auth.vendorEmailLogin}
                 onSignedIn={signedIn}
-                defaults={DEMO ? { phone: '9876543210', password: 'Vendor@123' } : undefined}
+                emailLabel="Vendor email"
+                defaults={
+                  DEMO ? { email: 'rajesh@cooltech.in', password: 'Vendor@123' } : undefined
+                }
               />
             ))}
 
           {who === 'technician' &&
             (registering ? (
               <TechnicianRegisterForm onSignedIn={signedIn} />
+            ) : technicianLoginMode === 'password' ? (
+              <>
+                <EmailSignIn
+                  signIn={api.auth.technicianLogin}
+                  onSignedIn={signedIn}
+                  emailLabel="Technician email"
+                />
+                <p className={styles.switchRow}>
+                  <Button variant="ghost" size="sm" onClick={() => setTechnicianLoginMode('otp')}>
+                    Use mobile OTP for an existing account
+                  </Button>
+                </p>
+              </>
             ) : (
-              <OtpSignIn
-                sendOtp={api.auth.technicianSendOtp}
-                verify={(v) => api.auth.technicianVerify(v.phone, v.otp)}
-                onSignedIn={signedIn}
-                defaultPhone={DEMO ? '9876500011' : ''}
-              />
+              <>
+                <OtpSignIn
+                  sendOtp={api.auth.technicianSendOtp}
+                  verify={(v) => api.auth.technicianVerify(v.phone, v.otp)}
+                  onSignedIn={signedIn}
+                  defaultPhone={DEMO ? '9876500011' : ''}
+                />
+                <p className={styles.switchRow}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTechnicianLoginMode('password')}
+                  >
+                    Use email and password
+                  </Button>
+                </p>
+              </>
             ))}
 
           {who === 'admin' && (
@@ -175,6 +209,7 @@ export function LoginPage() {
               signIn={api.auth.platformLogin}
               onSignedIn={ownerSignedIn}
               emailLabel="Owner email"
+              defaults={DEMO ? { email: 'owner@sahjog.in', password: 'Owner@12345' } : undefined}
             />
           )}
 

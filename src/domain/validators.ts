@@ -1,11 +1,30 @@
-/** Reduces "+91 98765 43210" and the like to the 10 digits the API expects, or returns null. */
+/** Normalizes an Indian mobile number with an optional explicit +91 prefix and separators. */
 export function normalisePhone(raw: string): string | null {
-  const digits = raw.replace(/\D/g, '')
-  const ten = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits
-  return /^[6-9]\d{9}$/.test(ten) ? ten : null
+  let value = raw.trim()
+  if (value.startsWith('+91')) value = value.slice(3)
+  if (/[^0-9\s().-]/.test(value)) return null
+  const digits = value.replace(/\D/g, '')
+  return /^[6-9]\d{9}$/.test(digits) ? digits : null
 }
 
 export const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+
+export const normaliseEmail = (value: string) => value.trim().toLowerCase()
+
+const PAN_PATTERN = /^[A-Z]{3}[PCHABFLJGT][A-Z][0-9]{4}[A-Z]$/
+
+export function isPan(raw: string): boolean {
+  return PAN_PATTERN.test(raw.trim().toUpperCase())
+}
+
+export function normaliseGstin(raw: string): string {
+  return raw.trim().toUpperCase()
+}
+
+export function isGstin(raw: string): boolean {
+  const gstin = normaliseGstin(raw)
+  return /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin) && isPan(gstin.slice(2, 12))
+}
 
 // The Verhoeff check-digit tables Aadhaar numbers use (the API checks the same way).
 const VERHOEFF_D = [

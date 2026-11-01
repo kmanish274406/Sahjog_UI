@@ -77,6 +77,12 @@ export default function BookingDetailPage() {
                       <td>Platform fee</td>
                       <td>{formatCurrency(b.fee)}</td>
                     </tr>
+                    {b.taxAmount !== undefined && (
+                      <tr>
+                        <td>GST{b.taxRate !== undefined ? ` (${b.taxRate}%)` : ''}</td>
+                        <td>{formatCurrency(b.taxAmount)}</td>
+                      </tr>
+                    )}
                     {b.discount > 0 && (
                       <tr>
                         <td>Coupon</td>

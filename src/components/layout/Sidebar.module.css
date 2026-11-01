@@ -5,7 +5,10 @@
   display: flex;
   flex-direction: column;
   width: var(--sidebar-width);
-  background: var(--sidebar-bg);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgb(62 111 164 / 22%), transparent 48%),
+    linear-gradient(160deg, rgb(255 255 255 / 5%), transparent 40%, rgb(0 0 0 / 16%)),
+    var(--sidebar-bg);
   color: var(--sidebar-text);
   transition:
     width 0.2s ease,
@@ -30,14 +33,14 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 30px;
   height: 32px;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-sm);
-  color: var(--color-accent);
+  color: var(--sidebar-text-strong);
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 1;
 }
 
 .brand {

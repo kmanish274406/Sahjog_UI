@@ -5,12 +5,14 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '@/api'
 import { Avatar, Dropdown, SearchInput } from '@/components/ui'
+import { PERMISSIONS } from '@/config/permissions'
 import { ROUTES } from '@/config/routes'
 import { ROLE_LABELS } from '@/domain/constants'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { signOut } from '@/features/auth/utils/session'
 import { cartCount, useCartStore } from '@/features/cart/store/cart.store'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { usePermission } from '@/hooks/usePermission'
 import { useUiStore } from '@/store/ui.store'
 import { formatRelativeTime } from '@/utils/format'
 import styles from './Topbar.module.css'
@@ -18,12 +20,16 @@ import styles from './Topbar.module.css'
 export function Topbar() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const can = usePermission()
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const setMobileOpen = useUiStore((state) => state.setMobileSidebarOpen)
   const cartItems = useCartStore((state) => cartCount(state.items))
   const [term, setTerm] = useState('')
 
-  const hasBell = user?.role !== 'super_admin'
+  const isAdmin = user?.role === 'admin'
+  const hasNotificationView = !isAdmin || can(PERMISSIONS.notificationView)
+  const canEditNotifications = !isAdmin || can(PERMISSIONS.notificationEdit)
+  const hasBell = user?.role !== 'super_admin' && hasNotificationView && (!isAdmin || can.loaded)
   const notices = useApiQuery(['notifications'], api.notifications.list, {
     enabled: hasBell,
     refetchInterval: 30_000,
@@ -105,14 +111,16 @@ export function Topbar() {
                 <div className={styles.panelHeader}>
                   <strong>Notifications</strong>
                   {unreadCount > 0 ? (
-                    <button
-                      type="button"
-                      className={styles.muted}
-                      onClick={() => markRead.mutate(undefined)}
-                      disabled={markRead.isPending}
-                    >
-                      Mark {unreadCount} as read
-                    </button>
+                    canEditNotifications ? (
+                      <button
+                        type="button"
+                        className={styles.muted}
+                        onClick={() => markRead.mutate(undefined)}
+                        disabled={markRead.isPending}
+                      >
+                        Mark {unreadCount} as read
+                      </button>
+                    ) : null
                   ) : (
                     <span className={styles.muted}>All caught up</span>
                   )}
@@ -134,11 +142,13 @@ export function Topbar() {
                     ))}
                   </ul>
                 )}
-                <div className={styles.panelHeader}>
-                  <Link to={ROUTES.notifications} onClick={close}>
-                    See all notifications
-                  </Link>
-                </div>
+                {hasNotificationView && (
+                  <div className={styles.panelHeader}>
+                    <Link to={ROUTES.notifications} onClick={close}>
+                      See all notifications
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </Dropdown>
