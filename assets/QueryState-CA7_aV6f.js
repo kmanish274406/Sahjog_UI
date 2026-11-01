@@ -1,0 +1,1 @@
+import{B as e,G as t,J as n}from"./useApi-D9le30Z5.js";var r=n();function i({isLoading:n,error:i,children:a}){return n?(0,r.jsx)(`div`,{style:{display:`flex`,justifyContent:`center`,padding:56},children:(0,r.jsx)(e,{})}):i?(0,r.jsx)(t,{tone:`danger`,title:`This could not be loaded`,children:i.message}):(0,r.jsx)(r.Fragment,{children:a})}export{i as t};

@@ -1,0 +1,1 @@
+import{J as e}from"./useApi-D9le30Z5.js";import{t}from"./index-BjCh_f8s.js";var n=e();function r({permission:e,children:r}){return t()(e)?(0,n.jsx)(n.Fragment,{children:r}):null}export{r as t};
