@@ -1,0 +1,1 @@
+import{J as e}from"./useApi-grhrn_Lw.js";var t={toolbar:`_toolbar_z3r98_1`},n=e();function r({children:e}){return(0,n.jsx)(`div`,{className:t.toolbar,children:e})}export{r as t};
