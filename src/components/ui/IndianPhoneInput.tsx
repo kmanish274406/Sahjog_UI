@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { InputHTMLAttributes, Ref } from 'react'
+import { limitPhoneInput } from '@/domain/validators'
 import fieldStyles from './Field.module.css'
 import styles from './IndianPhoneInput.module.css'
 
@@ -20,14 +21,21 @@ export function IndianPhoneInput({
   className,
   required,
   ref,
+  value,
+  onChange,
   type = 'tel',
   inputMode = 'numeric',
   ...rest
 }: IndianPhoneInputProps) {
   const generatedId = useId()
+  const lastAcceptedValue = useRef(String(value ?? ''))
   const inputId = id ?? generatedId
   const errorId = `${inputId}-error`
   const hintId = `${inputId}-hint`
+
+  useEffect(() => {
+    if (value !== undefined) lastAcceptedValue.current = String(value)
+  }, [value])
 
   return (
     <div className={clsx(fieldStyles.field, className)}>
@@ -51,7 +59,19 @@ export function IndianPhoneInput({
           aria-invalid={error ? true : undefined}
           aria-required={required || undefined}
           aria-describedby={error ? errorId : hint ? hintId : undefined}
-          maxLength={rest.maxLength ?? 16}
+          value={value}
+          onChange={(event) => {
+            const raw = event.currentTarget.value
+            const limited = limitPhoneInput(raw)
+            if (limited === null) {
+              event.currentTarget.value = lastAcceptedValue.current
+              return
+            }
+            if (limited !== raw) event.currentTarget.value = limited
+            lastAcceptedValue.current = limited
+            onChange?.(event)
+          }}
+          maxLength={rest.maxLength ?? 20}
         />
       </div>
       {hint && !error && (

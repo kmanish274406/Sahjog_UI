@@ -126,7 +126,7 @@ export default function CheckoutPage() {
   const discount = coupon?.valid ? coupon.discount : 0
 
   const methods = Object.entries(settings.data?.paymentMethods ?? {})
-    .filter(([, on]) => on)
+    .filter(([name, on]) => on && (name !== 'Wallet' || settings.data?.features.wallet === true))
     .map(([name]) => name)
   const wallet = profile.data?.wallet ?? 0
   const couponAvailable =
