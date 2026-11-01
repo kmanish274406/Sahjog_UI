@@ -66,7 +66,7 @@ export function LoginPage() {
     setSession(sessionFromAuth(result))
     const needsPlan =
       ['vendor', 'technician'].includes(result.profile.role.toLowerCase()) &&
-      !result.profile.subscriptionActive
+      (result.profile.approvalStatus === 'pending' || !result.profile.subscriptionActive)
     navigate(needsPlan ? ROUTES.plans : (from ?? ROUTES.dashboard), { replace: true })
   }
   const ownerSignedIn = (result: PlatformAuthResult) => {

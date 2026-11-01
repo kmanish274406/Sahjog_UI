@@ -186,6 +186,16 @@ export interface PlatformAuthResult {
   refreshToken: string
 }
 
+export interface PlatformAuditLogDto {
+  id: number
+  platformAdminId: number | null
+  actorName: string
+  httpMethod: string
+  path: string
+  statusCode: number
+  createdAt: string
+}
+
 // ---------------------------------------------------------------- auth
 
 export interface ProfileDto {
@@ -196,6 +206,7 @@ export interface ProfileDto {
   email: string | null
   emoji: string
   isActive: boolean
+  approvalStatus: 'pending' | 'approved' | 'rejected'
   /** yyyy-MM-dd, or empty. */
   dateOfBirth: string
   /** A public path to the profile picture, or empty. */
@@ -596,6 +607,7 @@ export interface StaffDto {
   id: number
   role: string
   name: string
+  business: string
   email: string
   skill: string
   emoji: string

@@ -168,6 +168,10 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
     permission: PERMISSIONS.adminRoleView,
     routes: [page(rel(ROUTES.roles), () => import('@/features/platform/pages/RolesPage'))],
   },
+  {
+    roles: ['super_admin'],
+    routes: [page(rel(ROUTES.auditLog), () => import('@/features/platform/pages/AuditLogPage'))],
+  },
 ]
 
 const appRoutes: RouteObject[] = guarded.map(({ roles, permission, routes }) => ({

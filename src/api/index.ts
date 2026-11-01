@@ -34,6 +34,7 @@ import type {
   PlaceSuggestionDto,
   PlanDto,
   PlatformAuthResult,
+  PlatformAuditLogDto,
   ProfileDto,
   ProviderDto,
   ReferralDto,
@@ -276,7 +277,7 @@ export const api = {
   admin: {
     summary: () => request<AdminSummaryDto>('/api/admin/summary'),
     report: () => request<ReportDto>('/api/admin/report'),
-    users: (role?: 'Vendor' | 'Technician') =>
+    users: (role?: 'Customer' | 'Vendor' | 'Technician') =>
       request<StaffDto[]>('/api/admin/users', { query: { role } }),
     setUserActive: (id: number, active: boolean) =>
       put<StaffDto>(`/api/admin/users/${id}/active`, { active }),
@@ -312,6 +313,8 @@ export const api = {
   },
 
   platform: {
+    auditLogs: (limit = 100) =>
+      request<PlatformAuditLogDto[]>('/api/platform/audit-logs', { query: { limit } }),
     access: () => request<string[]>('/api/platform/access'),
     menu: () => request<MenuLinkDto[]>('/api/platform/menu'),
     lookups: () => request<LookupLists>('/api/platform/lookups'),
