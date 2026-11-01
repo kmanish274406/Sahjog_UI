@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { Children } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Grid.module.css'
 
@@ -14,5 +15,12 @@ export interface GridProps {
 }
 
 export function Grid({ variant, children }: GridProps) {
-  return <div className={clsx(styles.grid, styles[variant.replace('-', '')])}>{children}</div>
+  const count = Children.count(children)
+  const variantClass =
+    variant === 'stats' && count === 3
+      ? styles.statsThree
+      : variant === 'stats' && count === 6
+        ? styles.statsSix
+        : styles[variant.replace('-', '')]
+  return <div className={clsx(styles.grid, variantClass)}>{children}</div>
 }

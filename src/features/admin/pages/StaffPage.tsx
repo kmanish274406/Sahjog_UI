@@ -26,6 +26,7 @@ import {
 } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import { Can } from '@/hooks/Can'
+import { normaliseEmail } from '@/domain/validators'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 
@@ -132,7 +133,7 @@ function StaffForm({
         password: password || undefined,
       }
       return isNew
-        ? api.admin.addStaff({ ...body, email: email.trim() })
+        ? api.admin.addStaff({ ...body, email: normaliseEmail(email) })
         : api.admin.updateStaff(row.id, body)
     },
     { meta: { inline: true, success: 'Staff member saved.' }, onSuccess: onClose },
@@ -172,7 +173,7 @@ function StaffForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={problem('email')}
-            maxLength={150}
+            maxLength={200}
           />
           <Select
             label="Role"

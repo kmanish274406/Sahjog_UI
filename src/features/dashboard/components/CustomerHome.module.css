@@ -9,8 +9,13 @@
   color: #fff;
 }
 
+.heroCopy {
+  min-width: 0;
+  flex: 1;
+}
+
 .greeting {
-  margin-bottom: var(--space-2);
+  margin-bottom: 2px;
   color: rgb(255 255 255 / 80%);
   font-size: 15px;
 }
@@ -23,8 +28,60 @@
 }
 
 .heroText {
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   color: rgb(255 255 255 / 85%);
+}
+
+.carouselControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.carouselArrow,
+.carouselDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 45%);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.carouselArrow {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.carouselDots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.carouselDot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.carouselDot[aria-pressed='true'] {
+  background: #fff;
+}
+
+.carouselArrow:hover,
+.carouselDot:hover {
+  background: rgb(255 255 255 / 20%);
+}
+
+.carouselArrow:focus-visible,
+.carouselDot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 .offer {

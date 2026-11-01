@@ -11,6 +11,8 @@ import type {
   ContentDto,
   CouponResult,
   CreateTenantRequest,
+  CreateTenantAdminRequest,
+  CreatedTenantAdminDto,
   CustomerVerifyRequest,
   EarningsDto,
   EmailAuthRequest,
@@ -34,6 +36,7 @@ import type {
   PlatformAuthResult,
   ProfileDto,
   ProviderDto,
+  ReferralDto,
   AccessPermissionDto,
   LookupItemDto,
   LookupLists,
@@ -99,6 +102,12 @@ export const api = {
         body: { phone, password },
         auth: false,
       }),
+    vendorEmailLogin: (email: string, password: string) =>
+      request<AuthResult>('/api/auth/vendor/login', {
+        method: 'POST',
+        body: { email, password },
+        auth: false,
+      }),
     vendorRegister: (r: VendorRegisterRequest) =>
       request<AuthResult>('/api/auth/vendor/register', { method: 'POST', body: r, auth: false }),
     technicianSendOtp: (phone: string) =>
@@ -111,6 +120,12 @@ export const api = {
       request<AuthResult>('/api/auth/technician/verify', {
         method: 'POST',
         body: { phone, otp },
+        auth: false,
+      }),
+    technicianLogin: (email: string, password: string) =>
+      request<AuthResult>('/api/auth/technician/login', {
+        method: 'POST',
+        body: { email, password },
         auth: false,
       }),
     technicianRegister: (r: TechnicianRegisterRequest) =>
@@ -176,6 +191,8 @@ export const api = {
       put<AddressDto>(`/api/customer/addresses/${id}`, r),
     deleteAddress: (id: number) => del(`/api/customer/addresses/${id}`),
     checkCoupon: (code: string) => post<CouponResult>('/api/customer/coupon', { code }),
+    referral: () => request<ReferralDto>('/api/referral'),
+    applyReferral: (code: string) => post<ReferralDto>('/api/referral/apply', { code }),
   },
 
   places: {
@@ -216,13 +233,17 @@ export const api = {
 
   vendor: {
     services: () => request<VendorServiceDto[]>('/api/vendor/services'),
-    addService: (r: SaveVendorServiceRequest) => post<VendorServiceDto>('/api/vendor/services', r),
     updateService: (id: number, r: SaveVendorServiceRequest) =>
       put<VendorServiceDto>(`/api/vendor/services/${id}`, r),
     deleteService: (id: number) => del(`/api/vendor/services/${id}`),
     technicians: () => request<StaffDto[]>('/api/vendor/technicians'),
-    addTechnician: (r: { name: string; skill?: string; phone?: string }) =>
-      post<StaffDto>('/api/vendor/technicians', r),
+    addTechnician: (r: {
+      name: string
+      skill?: string
+      phone?: string
+      email: string
+      password: string
+    }) => post<StaffDto>('/api/vendor/technicians', r),
     removeTechnician: (id: number) => del(`/api/vendor/technicians/${id}`),
     earnings: () => request<EarningsDto>('/api/vendor/earnings'),
     requestPayout: () => post<EarningsDto>('/api/vendor/payouts'),
@@ -259,6 +280,8 @@ export const api = {
       request<StaffDto[]>('/api/admin/users', { query: { role } }),
     setUserActive: (id: number, active: boolean) =>
       put<StaffDto>(`/api/admin/users/${id}/active`, { active }),
+    setUserApproval: (id: number, approved: boolean) =>
+      put<StaffDto>(`/api/admin/users/${id}/approval`, { approved }),
     extendPlan: (id: number, months: number) =>
       post<StaffDto>(`/api/admin/users/${id}/extend`, { months }),
     categories: () => request<CategoryDto[]>('/api/admin/categories'),
@@ -308,8 +331,19 @@ export const api = {
     adminRole: () => request<RoleAccessDto>('/api/platform/roles/admin'),
     saveAdminRole: (accessIds: string[]) =>
       put<RoleAccessDto>('/api/platform/roles/admin', { accessIds }),
+    superAdminRole: () => request<RoleAccessDto>('/api/platform/roles/super-admin'),
+    saveSuperAdminRole: (accessIds: string[]) =>
+      put<RoleAccessDto>('/api/platform/roles/super-admin', { accessIds }),
     tenants: () => request<TenantInfoDto[]>('/api/platform/tenants'),
+    tenantAdmins: (id: number) =>
+      request<CreatedTenantAdminDto[]>(`/api/platform/tenants/${id}/admins`),
+    tenantCategories: (id: number) =>
+      request<CategoryDto[]>(`/api/platform/tenants/${id}/categories`),
+    addTenantService: (id: number, r: SaveServiceRequest) =>
+      post<ServiceDto>(`/api/platform/tenants/${id}/services`, r),
     createTenant: (r: CreateTenantRequest) => post<TenantCreatedDto>('/api/platform/tenants', r),
+    createTenantAdmin: (id: number, r: CreateTenantAdminRequest) =>
+      post<CreatedTenantAdminDto>(`/api/platform/tenants/${id}/admins`, r),
     setTenantActive: (id: number, active: boolean) =>
       put<TenantInfoDto>(`/api/platform/tenants/${id}/active`, { active }),
     setFeatures: (id: number, features: Partial<Features>) =>

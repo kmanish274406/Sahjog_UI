@@ -5,18 +5,41 @@ import type { StaffDto } from '@/api/types'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Alert, Badge, Button, DataTable, Input, Modal, Panel } from '@/components/ui'
+import {
+  Alert,
+  Badge,
+  Button,
+  DataTable,
+  IndianPhoneInput,
+  Input,
+  Modal,
+  Panel,
+} from '@/components/ui'
 import type { Column } from '@/components/ui'
-import { collect, nameProblem, optionalPhoneProblem } from '@/domain/form-rules'
+import {
+  collect,
+  emailProblem,
+  nameProblem,
+  optionalPhoneProblem,
+  passwordProblem,
+} from '@/domain/form-rules'
+import { normaliseEmail, normalisePhone } from '@/domain/validators'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 
 export default function TeamPage() {
   const team = useApiQuery(['vendor', 'technicians'], api.vendor.technicians)
+  const profile = useApiQuery(['profile'], api.auth.me)
   const [adding, setAdding] = useState(false)
   const remove = useApiMutation((id: number) => api.vendor.removeTechnician(id), {
     meta: { success: 'Technician removed from your team.' },
   })
+  const technicianCount = profile.data?.technicianCount ?? team.data?.length
+  const technicianLimit = profile.data?.technicianLimit
+  const atLimit =
+    typeof technicianCount === 'number' &&
+    typeof technicianLimit === 'number' &&
+    technicianCount >= technicianLimit
 
   const columns: Column<StaffDto>[] = [
     {
@@ -30,6 +53,7 @@ export default function TeamPage() {
       ),
     },
     { key: 'skill', header: 'Skill', render: (t) => t.skill || '-' },
+    { key: 'email', header: 'Login username', render: (t) => t.email || '-' },
     {
       key: 'phone',
       header: 'Phone',
@@ -42,7 +66,9 @@ export default function TeamPage() {
         !t.active ? (
           <Badge tone="danger">Disabled</Badge>
         ) : t.onJob ? (
-          <Badge tone="warning">On a job</Badge>
+          <Badge tone="warning">Booked</Badge>
+        ) : !t.available ? (
+          <Badge tone="neutral">Unavailable</Badge>
         ) : (
           <Badge tone="success">Available</Badge>
         ),
@@ -73,11 +99,17 @@ export default function TeamPage() {
         title="My technicians"
         description="The people you can assign orders to. They are covered by your subscription."
         actions={
-          <Button onClick={() => setAdding(true)}>
+          <Button onClick={() => setAdding(true)} disabled={atLimit}>
             <Plus size={16} aria-hidden="true" /> Add technician
           </Button>
         }
       />
+      {typeof technicianCount === 'number' && typeof technicianLimit === 'number' && (
+        <Alert tone={atLimit ? 'warning' : 'info'}>
+          {technicianCount} of {technicianLimit} technician seats used.
+          {atLimit ? ' Your plan limit has been reached.' : ''}
+        </Alert>
+      )}
       <QueryState isLoading={team.isLoading} error={team.error}>
         <Panel flush>
           {team.data && team.data.length === 0 ? (
@@ -104,14 +136,23 @@ function AddForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('')
   const [skill, setSkill] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showErrors, setShowErrors] = useState(false)
-  const errors = collect({ name: nameProblem(name), phone: optionalPhoneProblem(phone) })
+  const errors = collect({
+    name: nameProblem(name),
+    phone: optionalPhoneProblem(phone),
+    email: emailProblem(email),
+    password: passwordProblem(password, true),
+  })
   const add = useApiMutation(
     () =>
       api.vendor.addTechnician({
         name: name.trim(),
         skill: skill.trim() || undefined,
-        phone: phone.trim() || undefined,
+        phone: normalisePhone(phone) ?? undefined,
+        email: normaliseEmail(email),
+        password,
       }),
     {
       meta: { inline: true, success: 'Technician added.' },
@@ -144,9 +185,25 @@ function AddForm({ onDone }: { onDone: () => void }) {
         maxLength={80}
       />
       <Input
+        label="Technician email (username)"
+        required
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        error={showErrors ? errors.email : undefined}
+      />
+      <Input
+        label="Temporary password"
+        required
+        type="password"
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        error={showErrors ? errors.password : undefined}
+      />
+      <IndianPhoneInput
         label="Mobile number"
-        type="tel"
-        inputMode="numeric"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         error={showErrors ? errors.phone : undefined}

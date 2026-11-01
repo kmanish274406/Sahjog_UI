@@ -1,4 +1,4 @@
-import { Package, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Package, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '@/api'
 import { assetUrl } from '@/api/http'
@@ -6,27 +6,16 @@ import type { SaveVendorServiceRequest, VendorServiceDto } from '@/api/types'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-  Badge,
-  Button,
-  Checkbox,
-  DataTable,
-  Input,
-  Modal,
-  Panel,
-  Select,
-  Textarea,
-} from '@/components/ui'
+import { Badge, Button, Checkbox, DataTable, Input, Modal, Panel, Textarea } from '@/components/ui'
 import type { Column } from '@/components/ui'
-import { useServices } from '@/features/catalog/hooks/useCatalog'
-import { amountProblem, collect, requiredChoiceProblem } from '@/domain/form-rules'
+import { amountProblem, collect } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency } from '@/utils/format'
 
 export default function MyServicesPage() {
   const offers = useApiQuery(['vendor', 'services'], api.vendor.services)
-  const [editing, setEditing] = useState<VendorServiceDto | 'new' | null>(null)
+  const [editing, setEditing] = useState<VendorServiceDto | null>(null)
   const toggle = useApiMutation(
     (o: VendorServiceDto) => api.vendor.updateService(o.id, { active: !o.active }),
     {
@@ -116,22 +105,13 @@ export default function MyServicesPage() {
     <div className={shared.stack}>
       <PageHeader
         title="My services"
-        description="The services you offer and the price you charge for each. Customers see them while your subscription is active."
-        actions={
-          <Button onClick={() => setEditing('new')}>
-            <Plus size={16} aria-hidden="true" /> Add a service
-          </Button>
-        }
+        description="Manage the services enabled for your business, including their prices and visibility."
       />
       <QueryState isLoading={offers.isLoading} error={offers.error}>
         <Panel flush>
           {offers.data && offers.data.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="You have not listed any service"
-              action={<Button onClick={() => setEditing('new')}>Add your first service</Button>}
-            >
-              Choose from the platform catalogue and set your own price.
+            <EmptyState icon={Package} title="No services are enabled for your business">
+              Contact your business administrator to add services to the catalogue.
             </EmptyState>
           ) : (
             <DataTable columns={columns} rows={offers.data ?? []} getRowId={(o) => String(o.id)} />
@@ -140,45 +120,26 @@ export default function MyServicesPage() {
       </QueryState>
       <Modal
         open={editing !== null}
-        title={editing === 'new' ? 'Add a service' : 'Edit service'}
+        title="Edit service offer"
         onClose={() => setEditing(null)}
         wide
       >
         {editing !== null && (
-          <OfferForm
-            key={editing === 'new' ? 'new' : editing.id}
-            editing={editing}
-            existing={offers.data ?? []}
-            onDone={() => setEditing(null)}
-          />
+          <OfferForm key={editing.id} editing={editing} onDone={() => setEditing(null)} />
         )}
       </Modal>
     </div>
   )
 }
 
-function OfferForm({
-  editing,
-  existing,
-  onDone,
-}: {
-  editing: VendorServiceDto | 'new'
-  existing: VendorServiceDto[]
-  onDone: () => void
-}) {
-  const offer = editing === 'new' ? null : editing
-  const catalogue = useServices()
-  const [serviceItemId, setServiceItemId] = useState(String(offer?.serviceItemId ?? ''))
-  const [price, setPrice] = useState(String(offer?.price ?? ''))
-  const [description, setDescription] = useState(offer?.description ?? '')
-  const [isFixed, setIsFixed] = useState(offer?.isFixed ?? true)
-  const [active, setActive] = useState(offer?.active ?? true)
-  const [image, setImage] = useState<string | null>(offer?.image ?? null)
+function OfferForm({ editing, onDone }: { editing: VendorServiceDto; onDone: () => void }) {
+  const [price, setPrice] = useState(String(editing.price))
+  const [description, setDescription] = useState(editing.description)
+  const [isFixed, setIsFixed] = useState(editing.isFixed)
+  const [active, setActive] = useState(editing.active)
+  const [image, setImage] = useState<string | null>(editing.image)
   const [showErrors, setShowErrors] = useState(false)
-  const errors = collect({
-    serviceItemId: requiredChoiceProblem(serviceItemId, 'service'),
-    price: amountProblem(price, 'price'),
-  })
+  const errors = collect({ price: amountProblem(price, 'price') })
 
   const upload = useApiMutation((file: File) => api.uploads.image(file), {
     meta: { inline: true },
@@ -187,23 +148,16 @@ function OfferForm({
   const save = useApiMutation(
     () => {
       const body: SaveVendorServiceRequest = {
-        serviceItemId: Number(serviceItemId),
         price: Number(price),
         description,
         isFixed,
         active,
         image,
       }
-      return offer ? api.vendor.updateService(offer.id, body) : api.vendor.addService(body)
+      return api.vendor.updateService(editing.id, body)
     },
     { meta: { inline: true, success: 'Service saved.' }, onSuccess: onDone },
   )
-
-  const taken = new Set(existing.map((o) => o.serviceItemId))
-  const options = (catalogue.data ?? [])
-    .filter((s) => offer?.serviceItemId === s.id || !taken.has(s.id))
-    .map((s) => ({ value: String(s.id), label: `${s.emoji} ${s.name} (${s.category})` }))
-  const chosen = catalogue.data?.find((s) => String(s.id) === serviceItemId)
 
   return (
     <form
@@ -214,16 +168,6 @@ function OfferForm({
         save.mutate(undefined)
       }}
     >
-      <Select
-        label="Service"
-        required
-        placeholder="Choose from the catalogue"
-        disabled={offer !== null}
-        value={serviceItemId}
-        onChange={(e) => setServiceItemId(e.target.value)}
-        error={showErrors ? errors.serviceItemId : undefined}
-        options={options}
-      />
       <Input
         label="Your price (₹)"
         required
@@ -233,11 +177,7 @@ function OfferForm({
         value={price}
         onChange={(e) => setPrice(e.target.value)}
         error={showErrors ? errors.price : undefined}
-        hint={
-          chosen
-            ? `The platform's suggested price is ${formatCurrency(chosen.basePrice)}.`
-            : undefined
-        }
+        hint={`Platform service: ${editing.name} · ${editing.category}.`}
       />
       <Textarea
         label="Description"

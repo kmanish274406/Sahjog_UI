@@ -21,12 +21,15 @@ export function AccessMatrix({
   catalog,
   granted,
   onChange,
+  lockedAccessIds = [],
 }: {
   catalog: AccessPermissionDto[]
   granted: Set<string>
   onChange: (next: Set<string>) => void
+  lockedAccessIds?: string[]
 }) {
   const [term, setTerm] = useState('')
+  const locked = new Set(lockedAccessIds)
 
   const { columns, rows } = useMemo(() => {
     const rank = (a: string) => (ACTION_ORDER.indexOf(a) === -1 ? 99 : ACTION_ORDER.indexOf(a))
@@ -54,6 +57,7 @@ export function AccessMatrix({
   const setMany = (ids: string[], on: boolean) => {
     const next = new Set(granted)
     for (const id of ids) {
+      if (locked.has(id) && !on) continue
       if (on) next.add(id)
       else next.delete(id)
     }
@@ -116,6 +120,7 @@ export function AccessMatrix({
                   moduleIds={moduleIds}
                   columns={columns}
                   granted={granted}
+                  locked={locked}
                   setMany={setMany}
                   allOf={allOf}
                 />
@@ -141,6 +146,7 @@ function ModuleRows({
   moduleIds,
   columns,
   granted,
+  locked,
   setMany,
   allOf,
 }: {
@@ -149,6 +155,7 @@ function ModuleRows({
   moduleIds: string[]
   columns: string[]
   granted: Set<string>
+  locked: Set<string>
   setMany: (ids: string[], on: boolean) => void
   allOf: (ids: string[]) => boolean
 }) {
@@ -193,6 +200,7 @@ function ModuleRows({
                     <input
                       type="checkbox"
                       checked={granted.has(item.accessId)}
+                      disabled={locked.has(item.accessId)}
                       onChange={(e) => setMany([item.accessId], e.target.checked)}
                       title={item.label}
                       aria-label={item.label}

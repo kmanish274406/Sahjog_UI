@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isEmail, normalisePhone } from '@/domain/validators'
+import { isAadhaar, isEmail, isGstin, normalisePhone } from '@/domain/validators'
 
 const phone = z
   .string()
@@ -7,7 +7,12 @@ const phone = z
   .min(1, 'Mobile number is required')
   .refine((value) => normalisePhone(value) !== null, 'Enter a valid 10-digit mobile number')
 
-const email = z.string().trim().min(1, 'Email is required').refine(isEmail, 'Enter a valid email')
+const email = z
+  .string()
+  .trim()
+  .min(1, 'Email is required')
+  .max(200, 'Email can be at most 200 characters')
+  .refine(isEmail, 'Enter a valid email')
 
 export const phoneSchema = z.object({ phone })
 export type PhoneValues = z.infer<typeof phoneSchema>
@@ -27,7 +32,7 @@ export const emailLoginSchema = z.object({
 export type EmailLoginValues = z.infer<typeof emailLoginSchema>
 
 export const vendorLoginSchema = z.object({
-  phone,
+  email,
   password: z.string().min(1, 'Password is required'),
 })
 export type VendorLoginValues = z.infer<typeof vendorLoginSchema>
@@ -37,7 +42,13 @@ export const vendorRegisterSchema = z.object({
   owner: z.string().trim().min(2, 'Owner name is required').max(80),
   phone,
   email,
-  gst: z.string().trim().max(20).optional(),
+  password: z.string().min(4, 'Password must be at least 4 characters').max(64),
+  gst: z
+    .string()
+    .trim()
+    .max(15, 'GST number must be 15 characters')
+    .refine((value) => value === '' || isGstin(value), 'Enter a valid 15-character GST number')
+    .optional(),
   address: z.string().trim().min(8, 'Enter a fuller address with area and city').max(300),
   categories: z.array(z.string()).min(1, 'Choose at least one category'),
 })
@@ -46,9 +57,16 @@ export type VendorRegisterValues = z.infer<typeof vendorRegisterSchema>
 export const technicianRegisterSchema = z.object({
   name: z.string().trim().min(2, 'Name is required').max(80),
   phone,
+  email,
+  password: z.string().min(4, 'Password must be at least 4 characters').max(64),
   skills: z.array(z.string()).min(1, 'Choose at least one skill'),
   experience: z.coerce.number().int().min(0, 'Enter years of experience').max(60),
-  aadhaar: z.string().trim().max(20).optional(),
+  aadhaar: z
+    .string()
+    .trim()
+    .max(20)
+    .refine((value) => value === '' || isAadhaar(value), 'Enter a valid 12-digit Aadhaar number')
+    .optional(),
   address: z.string().trim().min(8, 'Enter a fuller address with area and city').max(300),
 })
 export type TechnicianRegisterValues = z.infer<typeof technicianRegisterSchema>

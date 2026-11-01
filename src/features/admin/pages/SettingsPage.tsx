@@ -12,7 +12,7 @@ import { useLookups } from '@/hooks/useLookups'
 import { usePermission } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 
-type SettingsTab = 'fees' | 'cancellation' | 'payments' | 'coupon' | 'plans'
+type SettingsTab = 'fees' | 'cancellation' | 'payments' | 'coupon' | 'referral' | 'plans'
 
 /** Tab ids with their fallback names; the names are read from the lookup table (label rows `settings.tab.<id>`). */
 const TABS: { id: SettingsTab; label: string }[] = [
@@ -20,6 +20,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'cancellation', label: 'Cancellation' },
   { id: 'payments', label: 'Payment methods' },
   { id: 'coupon', label: 'Coupon' },
+  { id: 'referral', label: 'Refer & earn' },
   { id: 'plans', label: 'Subscriptions' },
 ]
 
@@ -34,18 +35,26 @@ export default function SettingsPage() {
   // A tab also needs the person's own permission, on top of the owner's switch for the business.
   const can = usePermission()
   const allowed: Record<SettingsTab, boolean> = {
-    fees: can(PERMISSIONS.feesEdit),
-    cancellation: can(PERMISSIONS.feesEdit),
-    payments: can(PERMISSIONS.paymentMethodEdit) && (features?.paymentMethods ?? false),
-    coupon: can(PERMISSIONS.couponEdit) && (features?.coupon ?? false),
-    plans: can(PERMISSIONS.planEdit) && (features?.subscriptions ?? false),
+    fees: can(PERMISSIONS.feesView) || can(PERMISSIONS.feesEdit),
+    cancellation: can(PERMISSIONS.feesView) || can(PERMISSIONS.feesEdit),
+    payments:
+      (can(PERMISSIONS.paymentMethodView) || can(PERMISSIONS.paymentMethodEdit)) &&
+      (features?.paymentMethods ?? false),
+    coupon:
+      (can(PERMISSIONS.couponView) || can(PERMISSIONS.couponEdit)) && (features?.coupon ?? false),
+    referral:
+      (can(PERMISSIONS.referralView) || can(PERMISSIONS.referralEdit)) &&
+      (features?.referral ?? false),
+    plans:
+      (can(PERMISSIONS.planView) || can(PERMISSIONS.planEdit)) &&
+      (features?.subscriptions ?? false),
   }
   const lookups = useLookups()
   const tabs = TABS.filter((t) => allowed[t.id]).map((t) => ({
     ...t,
     label: lookups.text('label', `settings.tab.${t.id}`, t.label),
   }))
-  const current = allowed[tab] ? tab : 'fees'
+  const current = allowed[tab] ? tab : (tabs[0]?.id ?? null)
 
   return (
     <div className={shared.stack}>
@@ -57,31 +66,52 @@ export default function SettingsPage() {
         isLoading={settings.isLoading || plans.isLoading}
         error={settings.error ?? plans.error}
       >
-        <Tabs items={tabs} active={current} onChange={setTab} label="Settings" />
+        {tabs.length > 0 && (
+          <Tabs items={tabs} active={current!} onChange={setTab} label="Settings" />
+        )}
+        {tabs.length === 0 && (
+          <Alert tone="info">
+            {can.loaded
+              ? 'No settings are available with your current permissions and enabled features.'
+              : 'Checking your settings permissions…'}
+          </Alert>
+        )}
         {/* Every form stays mounted so unsaved edits survive a switch of tab. */}
-        {settings.data && (
+        {settings.data && current && (
           <>
-            <div hidden={current !== 'fees'}>
-              <FeesForm settings={settings.data} />
-            </div>
-            <div hidden={current !== 'cancellation'}>
-              <CancellationForm settings={settings.data} />
-            </div>
+            {allowed.fees && (
+              <div hidden={current !== 'fees'}>
+                <FeesForm settings={settings.data} canEdit={can(PERMISSIONS.feesEdit)} />
+              </div>
+            )}
+            {allowed.cancellation && (
+              <div hidden={current !== 'cancellation'}>
+                <CancellationForm settings={settings.data} canEdit={can(PERMISSIONS.feesEdit)} />
+              </div>
+            )}
             {allowed.payments && (
               <div hidden={current !== 'payments'}>
-                <PaymentMethodsForm settings={settings.data} />
+                <PaymentMethodsForm
+                  settings={settings.data}
+                  canEdit={can(PERMISSIONS.paymentMethodEdit)}
+                />
               </div>
             )}
             {allowed.coupon && (
               <div hidden={current !== 'coupon'}>
-                <CouponForm settings={settings.data} />
+                <CouponForm settings={settings.data} canEdit={can(PERMISSIONS.couponEdit)} />
+              </div>
+            )}
+            {allowed.referral && (
+              <div hidden={current !== 'referral'}>
+                <ReferralForm settings={settings.data} canEdit={can(PERMISSIONS.referralEdit)} />
               </div>
             )}
           </>
         )}
         {plans.data && allowed.plans && (
           <div hidden={current !== 'plans'}>
-            <PlansForm plans={plans.data} />
+            <PlansForm plans={plans.data} canEdit={can(PERMISSIONS.planEdit)} />
           </div>
         )}
       </QueryState>
@@ -112,7 +142,7 @@ function SaveRow({
   )
 }
 
-function FeesForm({ settings }: { settings: SettingsDto }) {
+function FeesForm({ settings, canEdit }: { settings: SettingsDto; canEdit: boolean }) {
   const [fee, setFee] = useState(String(settings.platformFee))
   const [commission, setCommission] = useState(String(settings.defaultCommission))
   const [showErrors, setShowErrors] = useState(false)
@@ -147,6 +177,7 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
             step="1"
             value={fee}
             onChange={(e) => setFee(e.target.value)}
+            disabled={!canEdit}
             error={showErrors ? errors.fee : undefined}
             hint="Added to every booking and paid by the customer."
           />
@@ -158,17 +189,18 @@ function FeesForm({ settings }: { settings: SettingsDto }) {
             step="0.5"
             value={commission}
             onChange={(e) => setCommission(e.target.value)}
+            disabled={!canEdit}
             error={showErrors ? errors.commission : undefined}
             hint="Taken from the vendor on a completed job, unless a service has its own."
           />
         </div>
-        <SaveRow pending={save.isPending} error={save.error?.message} />
+        {canEdit && <SaveRow pending={save.isPending} error={save.error?.message} />}
       </form>
     </Panel>
   )
 }
 
-function CancellationForm({ settings }: { settings: SettingsDto }) {
+function CancellationForm({ settings, canEdit }: { settings: SettingsDto; canEdit: boolean }) {
   const lookups = useLookups()
   const [values, setValues] = useState(
     CANCEL_STAGE_LABELS.map((_, i) => String(settings.cancelPercents[i] ?? 0)),
@@ -202,17 +234,20 @@ function CancellationForm({ settings }: { settings: SettingsDto }) {
               step="1"
               value={values[i]}
               onChange={(e) => setValues(values.map((v, j) => (j === i ? e.target.value : v)))}
+              disabled={!canEdit}
               hint="% kept"
             />
           ))}
         </div>
-        <SaveRow pending={save.isPending} error={save.error?.message} disabled={invalid} />
+        {canEdit && (
+          <SaveRow pending={save.isPending} error={save.error?.message} disabled={invalid} />
+        )}
       </form>
     </Panel>
   )
 }
 
-function PaymentMethodsForm({ settings }: { settings: SettingsDto }) {
+function PaymentMethodsForm({ settings, canEdit }: { settings: SettingsDto; canEdit: boolean }) {
   const [methods, setMethods] = useState(settings.paymentMethods)
   const save = useApiMutation(() => api.admin.updateSettings({ paymentMethods: methods }), {
     meta: { inline: true, success: 'Payment methods saved.' },
@@ -230,25 +265,33 @@ function PaymentMethodsForm({ settings }: { settings: SettingsDto }) {
       >
         <div className={shared.stackTight}>
           {Object.keys(methods).map((name) => (
-            <Toggle
-              key={name}
-              label={settings.paymentMethodLabels?.[name] ?? name}
-              checked={methods[name] === true}
-              onChange={(on) => setMethods({ ...methods, [name]: on })}
-            />
+            <div key={name} className={shared.spread}>
+              <span>{settings.paymentMethodLabels?.[name] ?? name}</span>
+              {canEdit ? (
+                <Toggle
+                  label={settings.paymentMethodLabels?.[name] ?? name}
+                  checked={methods[name] === true}
+                  onChange={(on) => setMethods({ ...methods, [name]: on })}
+                />
+              ) : (
+                <span>{methods[name] ? 'On' : 'Off'}</span>
+              )}
+            </div>
           ))}
         </div>
-        <SaveRow
-          pending={save.isPending}
-          error={save.error?.message}
-          disabled={!Object.values(methods).some(Boolean)}
-        />
+        {canEdit && (
+          <SaveRow
+            pending={save.isPending}
+            error={save.error?.message}
+            disabled={!Object.values(methods).some(Boolean)}
+          />
+        )}
       </form>
     </Panel>
   )
 }
 
-function CouponForm({ settings }: { settings: SettingsDto }) {
+function CouponForm({ settings, canEdit }: { settings: SettingsDto; canEdit: boolean }) {
   const [code, setCode] = useState(settings.couponCode)
   const [amount, setAmount] = useState(String(settings.couponAmount))
   const [showErrors, setShowErrors] = useState(false)
@@ -285,6 +328,7 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
             label="Coupon code"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
+            disabled={!canEdit}
             maxLength={30}
             error={showErrors ? errors.code : undefined}
           />
@@ -295,16 +339,77 @@ function CouponForm({ settings }: { settings: SettingsDto }) {
             step="1"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
+            disabled={!canEdit}
             error={showErrors ? errors.amount : undefined}
           />
         </div>
-        <SaveRow pending={save.isPending} error={save.error?.message} />
+        {canEdit && <SaveRow pending={save.isPending} error={save.error?.message} />}
       </form>
     </Panel>
   )
 }
 
-function PlansForm({ plans }: { plans: PlanDto[] }) {
+function ReferralForm({ settings, canEdit }: { settings: SettingsDto; canEdit: boolean }) {
+  const [referrerReward, setReferrerReward] = useState(String(settings.referrerReward))
+  const [refereeReward, setRefereeReward] = useState(String(settings.refereeReward))
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = collect({
+    referrerReward: feeProblem(referrerReward, 'referrer reward', 5_000),
+    refereeReward: feeProblem(refereeReward, 'new-customer reward', 5_000),
+  })
+  const save = useApiMutation(
+    () =>
+      api.admin.updateSettings({
+        referrerReward: Number(referrerReward),
+        refereeReward: Number(refereeReward),
+      }),
+    {
+      meta: { inline: true, success: 'Referral rewards saved.' },
+    },
+  )
+  return (
+    <Panel
+      title="Refer & earn"
+      subtitle="Wallet rewards paid to the referrer and new customer after the new customer's first completed booking. Set either reward to 0 to disable that payout."
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (Object.keys(errors).length > 0) return setShowErrors(true)
+          save.mutate(undefined)
+        }}
+      >
+        <div className={shared.formGrid}>
+          <Input
+            label="Reward for referrer (₹)"
+            type="number"
+            min={0}
+            max={5_000}
+            step="0.01"
+            value={referrerReward}
+            onChange={(e) => setReferrerReward(e.target.value)}
+            disabled={!canEdit}
+            error={showErrors ? errors.referrerReward : undefined}
+          />
+          <Input
+            label="Reward for new customer (₹)"
+            type="number"
+            min={0}
+            max={5_000}
+            step="0.01"
+            value={refereeReward}
+            onChange={(e) => setRefereeReward(e.target.value)}
+            disabled={!canEdit}
+            error={showErrors ? errors.refereeReward : undefined}
+          />
+        </div>
+        {canEdit && <SaveRow pending={save.isPending} error={save.error?.message} />}
+      </form>
+    </Panel>
+  )
+}
+
+function PlansForm({ plans, canEdit }: { plans: PlanDto[]; canEdit: boolean }) {
   const lookups = useLookups()
   // The plan kinds come from the lookup table; the fallback keeps the page working until it loads.
   const kinds = lookups.list('planKind').length
@@ -350,6 +455,7 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
                     step="1"
                     value={prices[p.id]}
                     onChange={(e) => setPrices({ ...prices, [p.id]: e.target.value })}
+                    disabled={!canEdit}
                     error={showErrors ? errors[p.id] : undefined}
                     hint={p.save || undefined}
                   />
@@ -357,11 +463,13 @@ function PlansForm({ plans }: { plans: PlanDto[] }) {
             </div>
           </div>
         ))}
-        <SaveRow
-          pending={save.isPending}
-          error={save.error?.message}
-          label="Save subscription fees"
-        />
+        {canEdit && (
+          <SaveRow
+            pending={save.isPending}
+            error={save.error?.message}
+            label="Save subscription fees"
+          />
+        )}
       </form>
     </Panel>
   )

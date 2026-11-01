@@ -1,11 +1,11 @@
+import { ageFrom, isAadhaar, isBankAccount, isGstin, isIfsc } from '@/domain/validators'
 import {
-  ageFrom,
-  isAadhaar,
-  isBankAccount,
-  isEmail,
-  isIfsc,
-  normalisePhone,
-} from '@/domain/validators'
+  addressProblem,
+  emailProblem,
+  integerProblem,
+  nameProblem,
+  phoneProblem,
+} from '@/domain/form-rules'
 
 export interface ProfileFormValues {
   name: string
@@ -39,11 +39,14 @@ export function validateProfile(
   const errors: ProfileErrors = {}
   const hasLetter = (text: string) => /\p{L}/u.test(text)
 
-  if (values.name.trim().length < 2 || !hasLetter(values.name))
-    errors.name = 'Enter your full name.'
-  if (!normalisePhone(values.phone)) errors.phone = 'Enter a valid 10-digit mobile number.'
-  if (values.email.trim() !== '' && !isEmail(values.email))
-    errors.email = 'Enter a valid email address.'
+  const nameError = nameProblem(values.name, 'full name')
+  if (nameError) errors.name = nameError
+  const phoneError = phoneProblem(values.phone)
+  if (phoneError) errors.phone = phoneError
+  if (values.email.trim() !== '') {
+    const emailError = emailProblem(values.email)
+    if (emailError) errors.email = emailError
+  }
 
   if (values.dateOfBirth !== '') {
     const age = ageFrom(values.dateOfBirth)
@@ -55,15 +58,16 @@ export function validateProfile(
   }
 
   const address = values.address.trim()
-  if (address !== '' && address.length < 8)
-    errors.address = 'Enter a fuller address with house number, area and city.'
-  if (address.length > 300) errors.address = 'The address can be at most 300 characters.'
+  if (address !== '') {
+    const addressError = addressProblem(address)
+    if (addressError) errors.address = addressError
+  }
   if (role === 'vendor' && address === '') errors.address = 'Enter your business address.'
 
   if (role === 'vendor') {
-    if (values.business.trim().length < 2) errors.business = 'Enter your business name.'
-    const gst = values.gst.trim().toUpperCase()
-    if (gst !== '' && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gst))
+    const businessError = nameProblem(values.business, 'business name', 120)
+    if (businessError) errors.business = businessError
+    if (values.gst.trim() !== '' && !isGstin(values.gst))
       errors.gst = 'Enter a valid 15-character GST number, or leave it empty.'
   }
 
@@ -91,9 +95,8 @@ export function validateProfile(
   }
 
   if (role === 'technician') {
-    const years = Number(values.experience)
-    if (values.experience.trim() === '' || !Number.isInteger(years) || years < 0 || years > 60)
-      errors.experience = 'Enter your experience in whole years, from 0 to 60.'
+    const experienceError = integerProblem(values.experience, 'experience', 0, 60)
+    if (experienceError) errors.experience = experienceError
   }
   return errors
 }

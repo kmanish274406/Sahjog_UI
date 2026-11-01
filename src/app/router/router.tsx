@@ -21,7 +21,6 @@ const page = (
 })
 
 const SIGNED_IN: Role[] = ['customer', 'vendor', 'technician', 'admin', 'super_admin']
-const TENANT_ROLES: Role[] = ['customer', 'vendor', 'technician', 'admin']
 const PROVIDERS: Role[] = ['vendor', 'technician']
 
 /** Each entry is guarded by the roles that may open its pages; the API checks the same rules. */
@@ -39,10 +38,28 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
     ],
   },
   {
-    roles: TENANT_ROLES,
+    roles: ['customer', 'vendor', 'technician'],
     routes: [
       page(rel(ROUTES.bookings), () => import('@/features/bookings/pages/BookingsPage')),
       page(rel(ROUTES.bookingDetail), () => import('@/features/bookings/pages/BookingDetailPage')),
+      page(
+        rel(ROUTES.notifications),
+        () => import('@/features/notifications/pages/NotificationsPage'),
+      ),
+    ],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.bookingView,
+    routes: [
+      page(rel(ROUTES.bookings), () => import('@/features/bookings/pages/BookingsPage')),
+      page(rel(ROUTES.bookingDetail), () => import('@/features/bookings/pages/BookingDetailPage')),
+    ],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.notificationView,
+    routes: [
       page(
         rel(ROUTES.notifications),
         () => import('@/features/notifications/pages/NotificationsPage'),
@@ -84,12 +101,7 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
-    permission: [
-      PERMISSIONS.categoryAdd,
-      PERMISSIONS.categoryEdit,
-      PERMISSIONS.serviceAdd,
-      PERMISSIONS.serviceEdit,
-    ],
+    permission: [PERMISSIONS.categoryView, PERMISSIONS.serviceView],
     routes: [page(rel(ROUTES.catalog), () => import('@/features/admin/pages/CatalogPage'))],
   },
   {
@@ -99,7 +111,7 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
-    permission: [PERMISSIONS.contentAdd, PERMISSIONS.contentEdit, PERMISSIONS.contentDelete],
+    permission: PERMISSIONS.contentView,
     routes: [page(rel(ROUTES.content), () => import('@/features/admin/pages/ContentPage'))],
   },
   {
@@ -119,10 +131,24 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
-    routes: [
-      page(rel(ROUTES.settings), () => import('@/features/admin/pages/SettingsPage')),
-      page(rel(ROUTES.business), () => import('@/features/admin/pages/BusinessPage')),
+    permission: [
+      PERMISSIONS.feesView,
+      PERMISSIONS.feesEdit,
+      PERMISSIONS.paymentMethodView,
+      PERMISSIONS.paymentMethodEdit,
+      PERMISSIONS.couponView,
+      PERMISSIONS.couponEdit,
+      PERMISSIONS.referralView,
+      PERMISSIONS.referralEdit,
+      PERMISSIONS.planView,
+      PERMISSIONS.planEdit,
     ],
+    routes: [page(rel(ROUTES.settings), () => import('@/features/admin/pages/SettingsPage'))],
+  },
+  {
+    roles: ['admin'],
+    permission: PERMISSIONS.businessView,
+    routes: [page(rel(ROUTES.business), () => import('@/features/admin/pages/BusinessPage'))],
   },
   {
     roles: ['super_admin'],

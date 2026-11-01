@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button, Input, Modal, Panel, Textarea } from '@/components/ui'
-import { addressProblem, collect, nameProblem } from '@/domain/form-rules'
+import { addressProblem, collect, landmarkProblem, nameProblem } from '@/domain/form-rules'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 import { PlaceSearch } from '../components/PlaceSearch'
@@ -71,6 +71,7 @@ export default function AddressesPage() {
                 }
               >
                 <p>{address.text}</p>
+                {address.landmark && <p className={shared.muted}>Landmark: {address.landmark}</p>}
               </Panel>
             ))}
           </div>
@@ -110,13 +111,18 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
   const existing = editing === 'new' ? null : editing
   const [label, setLabel] = useState(existing?.label ?? 'Home')
   const [text, setText] = useState(existing?.text ?? '')
+  const [landmark, setLandmark] = useState(existing?.landmark ?? '')
   const [showErrors, setShowErrors] = useState(false)
-  const errors = collect({ label: nameProblem(label, 'label', 40), text: addressProblem(text) })
+  const errors = collect({
+    label: nameProblem(label, 'label', 40),
+    text: addressProblem(text),
+    landmark: landmarkProblem(landmark),
+  })
   const save = useApiMutation(
     () =>
       existing
-        ? api.customer.updateAddress(existing.id, { label, text })
-        : api.customer.addAddress({ label, text }),
+        ? api.customer.updateAddress(existing.id, { label, text, landmark: landmark.trim() })
+        : api.customer.addAddress({ label, text, landmark: landmark.trim() }),
     { meta: { inline: true, success: 'Address saved.' }, onSuccess: onDone },
   )
 
@@ -148,6 +154,14 @@ function AddressForm({ editing, onDone }: { editing: AddressDto | 'new'; onDone:
         onChange={(e) => setText(e.target.value)}
         maxLength={300}
         error={showErrors ? errors.text : undefined}
+      />
+      <Input
+        label="Landmark"
+        hint="Optional. For example, opposite the community park."
+        value={landmark}
+        onChange={(e) => setLandmark(e.target.value)}
+        maxLength={120}
+        error={showErrors ? errors.landmark : undefined}
       />
       {save.isError && (
         <p role="alert" style={{ color: 'var(--color-danger)' }}>

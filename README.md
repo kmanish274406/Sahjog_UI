@@ -34,11 +34,13 @@ after a pause can take a minute (the client waits up to 90 seconds).
 | Vendor         | mobile + password (or register)     | Orders (accept, reject, assign), my services, my technicians, earnings and payouts, subscription           |
 | Technician     | mobile + OTP (or register)          | Open jobs, my jobs (start, close with the customer's OTP), earnings, subscription                          |
 | Admin          | email + password                    | Dashboard and reports, vendors and technicians, catalogue, app texts and slots, fees, payments and refunds |
-| Platform owner | email + password (no business code) | Clients: create, switch on or off, Wallet / Coupon / Google switches                                       |
+| Platform owner | email + password (no business code) | Clients: create, switch on or off, manage per-client features and control Admin menus/actions              |
 
 Demo accounts of the seeded database (the sign-in page pre-fills them in development): customer
 `9876543210` (OTP `123456`), vendor `9876543210` (any password), technician `9876500011` (OTP `123456`),
 admin `admin@sahjog.in` / `Admin@123`, the platform owner is the login the API was first started with (`Platform__SuperAdmin__Email` / `__Password`).
+The owner sign-in form is prefilled in development with the API's default local owner credentials. If the API uses a configured owner, enter that account instead.
+Under **Admin permissions**, the platform owner controls platform access and the menus/actions available to client Admins. Feature switches are managed separately per client: an optional feature must be enabled and the Admin must hold the relevant permission before it is available.
 
 The platform owner exists **only here**: the MAUI app no longer has those screens.
 

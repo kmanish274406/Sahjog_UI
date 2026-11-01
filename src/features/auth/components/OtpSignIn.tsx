@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AuthResult, OtpResult } from '@/api/types'
-import { Alert, Button, Input } from '@/components/ui'
+import { Alert, Button, IndianPhoneInput, Input } from '@/components/ui'
 import { normalisePhone } from '@/domain/validators'
 import { useApiMutation } from '@/hooks/useApi'
 import styles from './LoginForm.module.css'
@@ -47,13 +47,11 @@ export function OtpSignIn({
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
-      <Input
+      <IndianPhoneInput
         label="Mobile number"
         required
-        type="tel"
-        inputMode="numeric"
-        autoComplete="tel"
-        placeholder="98765 43210"
+        autoComplete="tel-national"
+        placeholder="9876543210"
         value={phone}
         onChange={(event) => {
           setPhone(event.target.value)

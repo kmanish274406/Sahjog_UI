@@ -215,7 +215,7 @@ function VendorActions({ booking }: { booking: BookingDto }) {
   }
 
   if (booking.stage === 'Accepted') {
-    const active = (technicians.data ?? []).filter((t) => t.active)
+    const available = (technicians.data ?? []).filter((t) => t.active && t.available && !t.onJob)
     return (
       <Panel title="Assign a technician" subtitle="Pick someone from your team to do this job.">
         <div className={shared.stackTight}>
@@ -224,21 +224,31 @@ function VendorActions({ booking }: { booking: BookingDto }) {
             placeholder={technicians.isLoading ? 'Loading…' : 'Choose a technician'}
             value={technicianId}
             onChange={(e) => setTechnicianId(e.target.value)}
-            options={active.map((t) => ({
+            options={(technicians.data ?? []).map((t) => ({
               value: String(t.id),
-              label: `${t.name} · ${t.skill}${t.onJob ? ' (on a job)' : ''}`,
+              label: `${t.name} · ${t.skill} · ${
+                !t.active
+                  ? 'Disabled'
+                  : t.onJob
+                    ? 'On a job'
+                    : t.available
+                      ? 'Available'
+                      : 'Unavailable'
+              }`,
+              disabled: !t.active || !t.available || t.onJob,
             }))}
           />
-          {technicians.data && active.length === 0 && (
+          {technicians.data && available.length === 0 && (
             <Alert tone="warning">
-              You have no active technicians. Add one under My technicians.
+              No technicians are currently available. Booked, unavailable or disabled technicians
+              cannot be assigned.
             </Alert>
           )}
           <div className={shared.row}>
             <Button
               onClick={() => assign.mutate(undefined)}
               loading={assign.isPending}
-              disabled={!technicianId}
+              disabled={!available.some((t) => String(t.id) === technicianId)}
             >
               Assign technician
             </Button>
@@ -301,7 +311,7 @@ function TechnicianActions({ booking, meId }: { booking: BookingDto; meId: numbe
           }}
         >
           <Input
-            label="Customer OTP"
+            label="Completion OTP"
             required
             inputMode="numeric"
             maxLength={6}

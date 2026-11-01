@@ -4,11 +4,17 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { QueryState } from '@/components/feedback/QueryState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge, Button, Panel } from '@/components/ui'
+import { PERMISSIONS } from '@/config/permissions'
+import { useAuthStore } from '@/features/auth/store/auth.store'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { usePermission } from '@/hooks/usePermission'
 import shared from '@/styles/shared.module.css'
 import { formatDateTime } from '@/utils/format'
 
 export default function NotificationsPage() {
+  const role = useAuthStore((state) => state.user?.role)
+  const can = usePermission()
+  const canEdit = role !== 'admin' || can(PERMISSIONS.notificationEdit)
   const notices = useApiQuery(['notifications'], api.notifications.list, {
     refetchInterval: 30_000,
   })
@@ -25,24 +31,26 @@ export default function NotificationsPage() {
         title="Notifications"
         description="Updates about your bookings, payments and account."
         actions={
-          <span className={shared.row}>
-            <Button
-              variant="secondary"
-              onClick={() => markRead.mutate(undefined)}
-              disabled={!data || data.unread === 0}
-              loading={markRead.isPending}
-            >
-              Mark all as read
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => clear.mutate(undefined)}
-              disabled={!data || data.items.length === 0}
-              loading={clear.isPending}
-            >
-              Clear all
-            </Button>
-          </span>
+          canEdit ? (
+            <span className={shared.row}>
+              <Button
+                variant="secondary"
+                onClick={() => markRead.mutate(undefined)}
+                disabled={!data || data.unread === 0}
+                loading={markRead.isPending}
+              >
+                Mark all as read
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => clear.mutate(undefined)}
+                disabled={!data || data.items.length === 0}
+                loading={clear.isPending}
+              >
+                Clear all
+              </Button>
+            </span>
+          ) : undefined
         }
       />
       <QueryState isLoading={notices.isLoading} error={notices.error}>
@@ -69,15 +77,17 @@ export default function NotificationsPage() {
                     </p>
                     <p className={`${shared.muted} ${shared.small}`}>{formatDateTime(n.when)}</p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    aria-label="Dismiss"
-                    onClick={() => dismiss.mutate(n.id)}
-                    disabled={dismiss.isPending}
-                  >
-                    <X size={15} />
-                  </Button>
+                  {canEdit && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label="Dismiss"
+                      onClick={() => dismiss.mutate(n.id)}
+                      disabled={dismiss.isPending}
+                    >
+                      <X size={15} />
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>

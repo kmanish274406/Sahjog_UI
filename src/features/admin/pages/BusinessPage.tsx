@@ -6,10 +6,12 @@ import { useApiQuery } from '@/hooks/useApi'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 
-/** A client's own record: who owns it, the code customers use, and which optional features the platform owner allows. */
+/** A client's own record: who owns it, the code customers use, and the features enabled by the platform owner. */
 export default function BusinessPage() {
   const tenant = useApiQuery(['admin', 'tenant'], api.tenant.mine)
   const t = tenant.data
+  const enabledFeatures =
+    t?.featureDefs?.filter((feature) => t.features[feature.code] === true) ?? []
 
   return (
     <div className={shared.stack}>
@@ -38,24 +40,21 @@ export default function BusinessPage() {
                 ]}
               />
             </Panel>
-            <Panel
-              title="Features"
-              subtitle="Set by the platform owner. A switched-off feature is hidden in the apps and refused by the server."
-            >
-              <ul className={shared.list}>
-                {(t.featureDefs ?? [])
-                  .map((def) => ({
-                    label: def.name,
-                    on: t.features[def.code] ?? true,
-                  }))
-                  .map((f) => (
-                    <li key={f.label} className={shared.spread}>
-                      <span>{f.label}</span>
-                      <Badge tone={f.on ? 'success' : 'neutral'}>{f.on ? 'On' : 'Off'}</Badge>
+            {enabledFeatures.length > 0 && (
+              <Panel
+                title="Features"
+                subtitle="Features enabled for this business by the platform owner."
+              >
+                <ul className={shared.list}>
+                  {enabledFeatures.map((feature) => (
+                    <li key={feature.code} className={shared.spread}>
+                      <span>{feature.name}</span>
+                      <Badge tone="success">On</Badge>
                     </li>
                   ))}
-              </ul>
-            </Panel>
+                </ul>
+              </Panel>
+            )}
           </>
         )}
       </QueryState>

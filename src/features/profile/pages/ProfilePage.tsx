@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   DescriptionList,
+  IndianPhoneInput,
   Input,
   Panel,
   Textarea,
@@ -16,7 +17,9 @@ import {
 } from '@/components/ui'
 import { ROUTES } from '@/config/routes'
 import { useAuthStore } from '@/features/auth/store/auth.store'
+import { useSettings } from '@/features/catalog/hooks/useCatalog'
 import { useApiMutation, useApiQuery } from '@/hooks/useApi'
+import { normaliseEmail, normaliseGstin, normalisePhone } from '@/domain/validators'
 import shared from '@/styles/shared.module.css'
 import { formatCurrency, formatDate } from '@/utils/format'
 import { AadhaarImage } from '../components/AadhaarImage'
@@ -51,6 +54,7 @@ export default function ProfilePage() {
 
 function ProfileForms({ profile }: { profile: ProfileDto }) {
   const role = useAuthStore((state) => state.user?.role)
+  const settings = useSettings()
   const updateUser = useAuthStore((state) => state.updateUser)
   const providerRole = role === 'vendor' || role === 'technician'
   const [form, setForm] = useState<ProfileFormValues>({
@@ -87,8 +91,8 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
     () => {
       const body: UpdateProfileRequest = {
         name: form.name.trim(),
-        phone: form.phone,
-        email: form.email.trim(),
+        phone: normalisePhone(form.phone) ?? form.phone,
+        email: normaliseEmail(form.email),
         dateOfBirth: form.dateOfBirth,
         notify,
       }
@@ -96,7 +100,7 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
       if (role === 'vendor')
         Object.assign(body, {
           business: form.business.trim(),
-          gst: form.gst.trim().toUpperCase(),
+          gst: normaliseGstin(form.gst),
           address: form.address.trim(),
         })
       if (role === 'technician')
@@ -149,7 +153,13 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
         {uploadPhoto.isError && <Alert tone="danger">{uploadPhoto.error.message}</Alert>}
       </Panel>
 
-      {role === 'customer' && (
+      {settings.error && (
+        <Alert tone="danger" title="Business features could not be checked">
+          {settings.error.message}
+        </Alert>
+      )}
+
+      {role === 'customer' && settings.data?.features.wallet === true && (
         <Panel title="Sahjog wallet">
           <div className={shared.spread}>
             <div>
@@ -165,6 +175,8 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
           </div>
         </Panel>
       )}
+
+      {role === 'customer' && settings.data?.features.referral === true && <ReferralPanel />}
 
       {providerRole && (
         <Panel
@@ -225,11 +237,9 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
               autoComplete="name"
               error={problem('name')}
             />
-            <Input
+            <IndianPhoneInput
               label="Mobile number"
               required
-              type="tel"
-              inputMode="numeric"
               autoComplete="tel"
               value={form.phone}
               onChange={set('phone')}
@@ -424,5 +434,72 @@ function ProfileForms({ profile }: { profile: ProfileDto }) {
         </div>
       </form>
     </>
+  )
+}
+
+function ReferralPanel() {
+  const referral = useApiQuery(['customer', 'referral'], api.customer.referral)
+  const [code, setCode] = useState('')
+  const apply = useApiMutation((value: string) => api.customer.applyReferral(value), {
+    meta: { inline: true, success: 'Referral code added.' },
+    onSuccess: () => setCode(''),
+  })
+
+  return (
+    <Panel
+      title="Refer & earn"
+      subtitle="Share your code with a new customer. Rewards are added to both wallets after their first completed booking."
+    >
+      <QueryState isLoading={referral.isLoading} error={referral.error}>
+        {referral.data && (
+          <div className={shared.stack}>
+            <DescriptionList
+              columns={3}
+              items={[
+                { label: 'Your referral code', value: <code>{referral.data.code}</code> },
+                { label: 'Friends joined', value: referral.data.joined },
+                { label: 'Rewards earned', value: formatCurrency(referral.data.earned) },
+                {
+                  label: 'Reward for you',
+                  value: formatCurrency(referral.data.referrerReward),
+                },
+                {
+                  label: 'Reward for your friend',
+                  value: formatCurrency(referral.data.refereeReward),
+                },
+                { label: 'Rewards paid', value: referral.data.rewarded },
+              ]}
+            />
+            {referral.data.referredBy && (
+              <p className={shared.muted}>You joined using {referral.data.referredBy}'s code.</p>
+            )}
+            {referral.data.canApply && (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  if (code.trim()) apply.mutate(code.trim())
+                }}
+              >
+                <div className={shared.formGrid}>
+                  <Input
+                    label="Have a friend's referral code?"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value.toUpperCase())}
+                    maxLength={20}
+                    autoComplete="off"
+                  />
+                </div>
+                {apply.isError && <Alert tone="danger">{apply.error.message}</Alert>}
+                <div className={shared.formActions}>
+                  <Button type="submit" loading={apply.isPending} disabled={!code.trim()}>
+                    Apply referral code
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+      </QueryState>
+    </Panel>
   )
 }
