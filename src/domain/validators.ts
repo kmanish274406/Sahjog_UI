@@ -7,6 +7,12 @@ export function normalisePhone(raw: string): string | null {
   return /^[6-9]\d{9}$/.test(digits) ? digits : null
 }
 
+/** Keeps a mobile field to ten national digits while accepting a pasted explicit +91 prefix. */
+export function limitPhoneInput(raw: string): string | null {
+  const value = raw.trimStart().startsWith('+91') ? raw.trimStart().slice(3).trimStart() : raw
+  return value.replace(/\D/g, '').length <= 10 ? value : null
+}
+
 export const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 
 export const normaliseEmail = (value: string) => value.trim().toLowerCase()

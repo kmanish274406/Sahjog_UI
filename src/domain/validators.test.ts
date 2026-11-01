@@ -3,6 +3,7 @@ import {
   isEmail,
   isGstin,
   isPan,
+  limitPhoneInput,
   normaliseEmail,
   normaliseGstin,
   normalisePhone,
@@ -26,6 +27,19 @@ describe('normalisePhone', () => {
     expect(normalisePhone('abc 9876543210')).toBeNull()
     expect(normalisePhone('+91 98765 432109')).toBeNull()
     expect(normalisePhone('919876543210')).toBeNull()
+  })
+})
+
+describe('limitPhoneInput', () => {
+  it('allows ten national digits, separators, and an explicit +91 prefix', () => {
+    expect(limitPhoneInput('9876543210')).toBe('9876543210')
+    expect(limitPhoneInput('98765 43210')).toBe('98765 43210')
+    expect(limitPhoneInput('+91 98765 43210')).toBe('98765 43210')
+  })
+
+  it('rejects input containing more than ten digits', () => {
+    expect(limitPhoneInput('98765432109')).toBeNull()
+    expect(limitPhoneInput('+91 98765 432109')).toBeNull()
   })
 })
 

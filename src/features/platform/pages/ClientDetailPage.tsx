@@ -18,6 +18,7 @@ import {
 } from '@/components/ui'
 import { PERMISSIONS } from '@/config/permissions'
 import { ROUTES } from '@/config/routes'
+import { isFeatureEnabled } from '@/domain/features'
 import {
   amountProblem,
   collect,
@@ -124,7 +125,7 @@ export default function ClientDetailPage() {
                       key={f.code}
                       label={f.name}
                       description={f.description}
-                      checked={tenant.features[f.code] ?? true}
+                      checked={isFeatureEnabled(tenant.features, f.code)}
                       onChange={(on) => setFeature.mutate({ [f.code]: on })}
                     />
                   ))}

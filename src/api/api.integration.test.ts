@@ -70,7 +70,7 @@ describe.skipIf(!live)('Sahjog API, end to end', () => {
     const incoming = (await api.bookings.list()).find((b) => b.id === code)
     expect(incoming).toBeDefined()
     expect((await api.bookings.accept(code)).stage).toBe('Accepted')
-    const team = (await api.vendor.technicians()).filter((t) => t.active && t.phone)
+    const team = (await api.vendor.technicians()).filter((t) => t.active && t.phone && t.available)
     expect(team.length).toBeGreaterThan(0)
     const tech = team[0]!
     expect((await api.bookings.assign(code, tech.id)).stage).toBe('Assigned')

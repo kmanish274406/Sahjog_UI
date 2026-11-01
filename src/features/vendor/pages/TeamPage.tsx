@@ -163,6 +163,7 @@ function AddForm({ onDone }: { onDone: () => void }) {
   return (
     <form
       className={shared.stackTight}
+      noValidate
       onSubmit={(event) => {
         event.preventDefault()
         if (Object.keys(errors).length > 0) return setShowErrors(true)
