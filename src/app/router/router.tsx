@@ -101,6 +101,11 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
+    permission: PERMISSIONS.auditLogView,
+    routes: [page(rel(ROUTES.tenantAuditLog), () => import('@/features/admin/pages/AuditLogPage'))],
+  },
+  {
+    roles: ['admin'],
     permission: [PERMISSIONS.categoryView, PERMISSIONS.serviceView],
     routes: [page(rel(ROUTES.catalog), () => import('@/features/admin/pages/CatalogPage'))],
   },

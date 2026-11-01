@@ -21,7 +21,7 @@ const ROLES: { id: Exclude<Who, 'customer'>; label: string; icon: typeof Store; 
   { id: 'vendor', label: 'Vendor', icon: Store, tint: styles.tintBlue },
   { id: 'technician', label: 'Technician', icon: HardHat, tint: styles.tintOrange },
   { id: 'admin', label: 'Admin', icon: ShieldCheck, tint: styles.tintPurple },
-  { id: 'owner', label: 'Owner', icon: Building2, tint: styles.tintNavy },
+  { id: 'owner', label: 'Platform owner', icon: Building2, tint: styles.tintNavy },
 ]
 
 const SUBTITLES: Record<Who, string> = {
@@ -188,7 +188,6 @@ export function LoginPage() {
               signIn={api.auth.platformLogin}
               onSignedIn={ownerSignedIn}
               emailLabel="Owner email"
-              defaults={DEMO ? { email: 'owner@sahjog.in', password: 'Owner@12345' } : undefined}
             />
           )}
 
@@ -209,8 +208,9 @@ export function LoginPage() {
 
       {DEMO && (
         <p className={styles.note}>
-          Development build: the fields are pre-filled with the demo accounts. The OTP is shown on
-          screen while the API's demo mode is on. API: {env.apiUrl}
+          Development build: demo account fields are pre-filled. Platform-owner credentials must be
+          configured on the API. The OTP is shown on screen while the API's demo mode is on. API:{' '}
+          {env.apiUrl}
         </p>
       )}
     </div>

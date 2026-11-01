@@ -196,6 +196,17 @@ export interface PlatformAuditLogDto {
   createdAt: string
 }
 
+export interface UserAuditLogDto {
+  id: number
+  actorUserId: number
+  actorName: string
+  actorRole: string
+  httpMethod: string
+  path: string
+  statusCode: number
+  createdAt: string
+}
+
 // ---------------------------------------------------------------- auth
 
 export interface ProfileDto {

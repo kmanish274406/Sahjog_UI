@@ -31,6 +31,7 @@ export const ROUTES = {
   auditLog: '/audit-logs',
   staff: '/staff',
   staffRoles: '/staff-roles',
+  tenantAuditLog: '/user-audit-logs',
   // Everyone
   notifications: '/notifications',
   profile: '/profile',

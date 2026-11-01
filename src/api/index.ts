@@ -35,6 +35,7 @@ import type {
   PlanDto,
   PlatformAuthResult,
   PlatformAuditLogDto,
+  UserAuditLogDto,
   ProfileDto,
   ProviderDto,
   ReferralDto,
@@ -304,6 +305,8 @@ export const api = {
       put<StaffRoleDto>(`/api/admin/roles/${id}`, r),
     deleteRole: (id: number) => del(`/api/admin/roles/${id}`),
     staff: () => request<StaffMemberDto[]>('/api/admin/staff'),
+    auditLogs: (limit = 100) =>
+      request<UserAuditLogDto[]>('/api/admin/audit-logs', { query: { limit } }),
     addStaff: (r: SaveStaffRequest) => post<StaffMemberDto>('/api/admin/staff', r),
     updateStaff: (id: number, r: SaveStaffRequest) =>
       put<StaffMemberDto>(`/api/admin/staff/${id}`, r),
