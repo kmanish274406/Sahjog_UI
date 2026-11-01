@@ -1,0 +1,1 @@
+import{R as e}from"./useApi-B_LztFVy.js";var t={toolbar:`_toolbar_z3r98_1`},n=e();function r({children:e}){return(0,n.jsx)(`div`,{className:t.toolbar,children:e})}export{r as t};
