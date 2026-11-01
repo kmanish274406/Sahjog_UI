@@ -22,7 +22,7 @@ import { Can } from '@/hooks/Can'
 import shared from '@/styles/shared.module.css'
 import { formatDate } from '@/utils/format'
 
-type Kind = 'Vendor' | 'Technician'
+type Kind = 'Customer' | 'Vendor' | 'Technician'
 
 export default function UsersPage() {
   const [kind, setKind] = useState<Kind>('Vendor')
@@ -46,36 +46,58 @@ export default function UsersPage() {
   )
 
   const rows = (users.data ?? []).filter((u) =>
-    `${u.name} ${u.skill} ${u.phone} ${u.email}`.toLowerCase().includes(term.trim().toLowerCase()),
+    `${u.name} ${u.business} ${u.skill} ${u.phone} ${u.email}`
+      .toLowerCase()
+      .includes(term.trim().toLowerCase()),
   )
 
   const columns: Column<StaffDto>[] = [
     {
       key: 'name',
-      header: kind === 'Vendor' ? 'Business' : 'Technician',
+      header: kind === 'Vendor' ? 'Business' : kind === 'Technician' ? 'Technician' : 'Customer',
       minWidth: 180,
       render: (u) => (
         <span>
-          <span aria-hidden="true">{u.emoji}</span> <strong>{u.name}</strong>
+          <span aria-hidden="true">{u.emoji}</span>{' '}
+          <strong>{kind === 'Vendor' ? u.business || u.name : u.name}</strong>
+          {kind === 'Vendor' && u.business && u.business !== u.name && (
+            <small className={shared.muted}>Owner: {u.name}</small>
+          )}
         </span>
       ),
     },
-    { key: 'skill', header: kind === 'Vendor' ? 'Offers' : 'Skill', render: (u) => u.skill || '-' },
+    ...(kind !== 'Customer'
+      ? [
+          {
+            key: 'skill',
+            header: kind === 'Vendor' ? 'Offers' : 'Skill',
+            render: (u: StaffDto) => u.skill || '-',
+          },
+        ]
+      : []),
     {
       key: 'phone',
       header: 'Phone',
       render: (u) => <span className={shared.mono}>{u.phone || '-'}</span>,
     },
-    { key: 'plan', header: 'Plan', render: (u) => u.plan },
-    {
-      key: 'expiry',
-      header: 'Plan ends',
-      render: (u) => (
-        <span className={shared.nowrap}>
-          {u.subscriptionActive ? formatDate(u.expiry) : <Badge tone="warning">Inactive</Badge>}
-        </span>
-      ),
-    },
+    ...(kind !== 'Customer'
+      ? [
+          { key: 'plan', header: 'Plan', render: (u: StaffDto) => u.plan },
+          {
+            key: 'expiry',
+            header: 'Plan ends',
+            render: (u: StaffDto) => (
+              <span className={shared.nowrap}>
+                {u.subscriptionActive ? (
+                  formatDate(u.expiry)
+                ) : (
+                  <Badge tone="warning">Inactive</Badge>
+                )}
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       key: 'status',
       header: 'Account',
@@ -83,41 +105,47 @@ export default function UsersPage() {
         <Badge tone={u.active ? 'success' : 'danger'}>{u.active ? 'Enabled' : 'Disabled'}</Badge>
       ),
     },
-    {
-      key: 'approval',
-      header: 'Review',
-      render: (u) => {
-        const status = u.approvalStatus
-        const tone =
-          status === 'approved'
-            ? 'success'
-            : status === 'rejected'
-              ? 'danger'
-              : status === 'pending'
-                ? 'warning'
-                : 'neutral'
-        const label = status
-          ? status === 'pending'
-            ? 'Pending approval'
-            : status[0]!.toUpperCase() + status.slice(1)
-          : 'Not provided'
-        return <Badge tone={tone}>{label}</Badge>
-      },
-    },
+    ...(kind !== 'Customer'
+      ? [
+          {
+            key: 'approval',
+            header: 'Review',
+            render: (u: StaffDto) => {
+              const status = u.approvalStatus
+              const tone =
+                status === 'approved'
+                  ? 'success'
+                  : status === 'rejected'
+                    ? 'danger'
+                    : status === 'pending'
+                      ? 'warning'
+                      : 'neutral'
+              const label = status
+                ? status === 'pending'
+                  ? 'Pending approval'
+                  : status[0]!.toUpperCase() + status.slice(1)
+                : 'Not provided'
+              return <Badge tone={tone}>{label}</Badge>
+            },
+          },
+        ]
+      : []),
     {
       key: 'actions',
       header: '',
       align: 'right',
       render: (u) => (
         <span className={shared.row} style={{ justifyContent: 'flex-end' }}>
-          <Can permission={PERMISSIONS.userExtend}>
-            <Button size="sm" variant="secondary" onClick={() => setExtending(u)}>
-              Extend plan
-            </Button>
-          </Can>
+          {kind !== 'Customer' && (
+            <Can permission={PERMISSIONS.userExtend}>
+              <Button size="sm" variant="secondary" onClick={() => setExtending(u)}>
+                Extend plan
+              </Button>
+            </Can>
+          )}
           <Can permission={PERMISSIONS.userEdit}>
             <>
-              {u.approvalStatus === 'pending' && (
+              {kind !== 'Customer' && u.approvalStatus === 'pending' && (
                 <>
                   <Button
                     size="sm"
@@ -144,7 +172,7 @@ export default function UsersPage() {
                   if (
                     !u.active ||
                     window.confirm(
-                      `Disable ${u.name}? They are signed out and cannot take work until you enable them again.`,
+                      `Disable ${u.business || u.name}? They cannot sign in until you enable the account again.`,
                     )
                   ) {
                     setActive.mutate({ id: u.id, active: !u.active })
@@ -163,12 +191,13 @@ export default function UsersPage() {
   return (
     <div className={shared.stack}>
       <PageHeader
-        title="Vendors & technicians"
-        description="Pending vendors and independent technicians cannot use the marketplace until an Admin approves them. Review pending accounts, switch accounts on or off and extend subscriptions."
+        title="User accounts"
+        description="Review vendors and technicians, manage customer access, approve provider accounts and extend provider subscriptions."
       />
       <Toolbar>
         <Tabs
           items={[
+            { id: 'Customer', label: 'Customers' },
             { id: 'Vendor', label: 'Vendors' },
             { id: 'Technician', label: 'Technicians' },
           ]}
@@ -178,7 +207,7 @@ export default function UsersPage() {
         />
         <SearchInput
           label="Search accounts"
-          placeholder="Search by name, skill or phone"
+          placeholder="Search by name, business, email or phone"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
         />

@@ -71,4 +71,25 @@ describe('login landing banners', () => {
     unmount()
     queryClient.clear()
   })
+
+  it('offers platform-owner sign-in without prefilled credentials', async () => {
+    const user = userEvent.setup()
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await user.click(await screen.findByRole('button', { name: 'Platform owner' }))
+    expect(screen.getByLabelText('Owner email')).toHaveValue('')
+    expect(screen.getByLabelText('Password')).toHaveValue('')
+
+    queryClient.clear()
+  })
 })

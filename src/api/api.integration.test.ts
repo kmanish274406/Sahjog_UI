@@ -85,7 +85,10 @@ describe.skipIf(!live)('Sahjog API, end to end', () => {
     await api.auth.technicianSendOtp(tech.phone)
     const technicianSignIn = await api.auth.technicianVerify(tech.phone, '123456')
     as(sessionFromAuth(technicianSignIn))
-    expect((await api.bookings.start(code)).stage).toBe('InProgress')
+    const started = await api.bookings.start(code)
+    expect(started.stage).toBe('InProgress')
+    expect(started.otp).toBeNull()
+    expect((await api.bookings.get(code)).otp).toBeNull()
 
     // The job-closing OTP is shown to the customer once the job has started.
     as(sessionFromAuth(customerSignIn))

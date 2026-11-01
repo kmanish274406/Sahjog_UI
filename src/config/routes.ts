@@ -28,8 +28,10 @@ export const ROUTES = {
   clientDetail: '/clients/:tenantId',
   masters: '/masters',
   roles: '/roles',
+  auditLog: '/audit-logs',
   staff: '/staff',
   staffRoles: '/staff-roles',
+  tenantAuditLog: '/user-audit-logs',
   // Everyone
   notifications: '/notifications',
   profile: '/profile',

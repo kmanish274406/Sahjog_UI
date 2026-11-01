@@ -101,6 +101,11 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
   },
   {
     roles: ['admin'],
+    permission: PERMISSIONS.auditLogView,
+    routes: [page(rel(ROUTES.tenantAuditLog), () => import('@/features/admin/pages/AuditLogPage'))],
+  },
+  {
+    roles: ['admin'],
     permission: [PERMISSIONS.categoryView, PERMISSIONS.serviceView],
     routes: [page(rel(ROUTES.catalog), () => import('@/features/admin/pages/CatalogPage'))],
   },
@@ -167,6 +172,10 @@ const guarded: { roles: Role[]; permission?: PermissionRule; routes: RouteObject
     roles: ['super_admin'],
     permission: PERMISSIONS.adminRoleView,
     routes: [page(rel(ROUTES.roles), () => import('@/features/platform/pages/RolesPage'))],
+  },
+  {
+    roles: ['super_admin'],
+    routes: [page(rel(ROUTES.auditLog), () => import('@/features/platform/pages/AuditLogPage'))],
   },
 ]
 

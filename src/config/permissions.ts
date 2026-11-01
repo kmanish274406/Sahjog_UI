@@ -32,6 +32,7 @@ export const PERMISSIONS = {
   userExtend: 'USER_EXTEND',
   paymentView: 'PAYMENT_VIEW',
   paymentRefund: 'PAYMENT_REFUND',
+  auditLogView: 'AUDIT_LOG_VIEW',
   categoryView: 'CATEGORY_VIEW',
   categoryAdd: 'CATEGORY_ADD',
   categoryEdit: 'CATEGORY_EDIT',

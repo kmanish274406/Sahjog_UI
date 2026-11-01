@@ -20,6 +20,8 @@ export function sessionFromAuth(result: AuthResult): AuthSession {
       role: roleFromApi(profile.role),
       phone: profile.phone || undefined,
       email: profile.email ?? undefined,
+      approvalStatus: profile.approvalStatus,
+      subscriptionActive: profile.subscriptionActive,
     },
   }
 }

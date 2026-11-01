@@ -8,6 +8,8 @@ export interface AuthUser {
   role: Role
   phone?: string
   email?: string
+  approvalStatus?: 'pending' | 'approved' | 'rejected'
+  subscriptionActive?: boolean
 }
 
 export interface AuthSession {

@@ -32,6 +32,13 @@ export function ProtectedRoute({ allowedRoles, permission }: ProtectedRouteProps
     return <Navigate to={ROUTES.dashboard} replace />
   }
 
+  const providerSetupRequired =
+    (user.role === 'vendor' || user.role === 'technician') &&
+    (user.approvalStatus === 'pending' || user.subscriptionActive === false)
+  if (providerSetupRequired && location.pathname !== ROUTES.plans) {
+    return <Navigate to={ROUTES.plans} replace />
+  }
+
   // Wait for the role's access ids before deciding, so a person is not bounced from a page they may open.
   if (permission && !can.loaded) return null
   if (permission && !can(permission)) {

@@ -314,12 +314,12 @@ function TechnicianActions({ booking, meId }: { booking: BookingDto; meId: numbe
             label="Completion OTP"
             required
             inputMode="numeric"
-            maxLength={6}
+            maxLength={4}
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
           />
           <div className={shared.row}>
-            <Button type="submit" loading={complete.isPending} disabled={otp.length < 4}>
+            <Button type="submit" loading={complete.isPending} disabled={otp.length !== 4}>
               Complete job
             </Button>
           </div>

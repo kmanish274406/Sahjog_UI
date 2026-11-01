@@ -34,6 +34,8 @@ import type {
   PlaceSuggestionDto,
   PlanDto,
   PlatformAuthResult,
+  PlatformAuditLogDto,
+  UserAuditLogDto,
   ProfileDto,
   ProviderDto,
   ReferralDto,
@@ -276,7 +278,7 @@ export const api = {
   admin: {
     summary: () => request<AdminSummaryDto>('/api/admin/summary'),
     report: () => request<ReportDto>('/api/admin/report'),
-    users: (role?: 'Vendor' | 'Technician') =>
+    users: (role?: 'Customer' | 'Vendor' | 'Technician') =>
       request<StaffDto[]>('/api/admin/users', { query: { role } }),
     setUserActive: (id: number, active: boolean) =>
       put<StaffDto>(`/api/admin/users/${id}/active`, { active }),
@@ -303,6 +305,8 @@ export const api = {
       put<StaffRoleDto>(`/api/admin/roles/${id}`, r),
     deleteRole: (id: number) => del(`/api/admin/roles/${id}`),
     staff: () => request<StaffMemberDto[]>('/api/admin/staff'),
+    auditLogs: (limit = 100) =>
+      request<UserAuditLogDto[]>('/api/admin/audit-logs', { query: { limit } }),
     addStaff: (r: SaveStaffRequest) => post<StaffMemberDto>('/api/admin/staff', r),
     updateStaff: (id: number, r: SaveStaffRequest) =>
       put<StaffMemberDto>(`/api/admin/staff/${id}`, r),
@@ -312,6 +316,8 @@ export const api = {
   },
 
   platform: {
+    auditLogs: (limit = 100) =>
+      request<PlatformAuditLogDto[]>('/api/platform/audit-logs', { query: { limit } }),
     access: () => request<string[]>('/api/platform/access'),
     menu: () => request<MenuLinkDto[]>('/api/platform/menu'),
     lookups: () => request<LookupLists>('/api/platform/lookups'),

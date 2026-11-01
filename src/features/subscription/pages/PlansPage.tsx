@@ -15,6 +15,7 @@ import styles from './PlansPage.module.css'
 
 export default function PlansPage() {
   const role = useAuthStore((state) => state.user?.role)
+  const updateUser = useAuthStore((state) => state.updateUser)
   const kind = role === 'technician' ? 'Technician' : 'Vendor'
   const profile = useApiQuery(['profile'], api.auth.me)
   const plans = usePlans(kind)
@@ -36,7 +37,10 @@ export default function PlansPage() {
       }
       return api.subscription.subscribe(plan.id, paymentId)
     },
-    { meta: { success: 'Plan activated.' } },
+    {
+      meta: { success: 'Plan activated.' },
+      onSuccess: () => updateUser({ subscriptionActive: true }),
+    },
   )
 
   const me = profile.data
@@ -59,6 +63,12 @@ export default function PlansPage() {
         {me?.coveredByVendor && (
           <Alert tone="success" title="Covered by your vendor">
             You work under a vendor whose plan covers you, so you do not need your own.
+          </Alert>
+        )}
+        {me?.approvalStatus === 'pending' && (
+          <Alert tone="warning" title="Waiting for Admin approval">
+            You can choose a subscription now, but marketplace access remains unavailable until an
+            Admin approves your account.
           </Alert>
         )}
         {me && !me.coveredByVendor && (
